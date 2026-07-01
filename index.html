@@ -2,65 +2,501 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Air Flow Mission | นักเรียน</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Air Flow Mission | Student</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <style>
-    :root{--bg:#020617;--card:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--blue:#38bdf8;--green:#22c55e;--red:#ef4444;--yellow:#facc15;--orange:#fb923c}
-    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#1d4ed8 0,#0f172a 38%,#020617 100%);color:var(--text);min-height:100vh}
-    header{text-align:center;padding:18px 12px 8px} h1{margin:0;font-size:clamp(24px,5vw,42px)} header p{margin:6px 0;color:#cbd5e1}
-    .app{width:min(1200px,96vw);margin:0 auto 28px;display:grid;grid-template-columns:330px 1fr;gap:14px}
-    .panel,.stage{background:rgba(15,23,42,.92);border:1px solid rgba(148,163,184,.25);border-radius:22px;box-shadow:0 20px 70px rgba(0,0,0,.35)} .panel{padding:15px}
-    label{font-size:13px;color:#cbd5e1;margin-bottom:5px;display:block} input,select,textarea{width:100%;border:1px solid rgba(148,163,184,.35);background:#020617;color:var(--text);border-radius:12px;padding:10px 12px;font-size:15px;outline:none} textarea{min-height:90px;resize:vertical}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.field{margin-bottom:10px}.missions{display:grid;gap:8px;margin:10px 0 14px}
-    .mission{border:1px solid rgba(148,163,184,.22);background:#111827;color:var(--text);padding:10px;border-radius:14px;text-align:left;cursor:pointer}.mission.active{border-color:var(--blue);background:linear-gradient(135deg,#075985,#0f172a)}.mission.locked{opacity:.45;filter:grayscale(1);cursor:not-allowed}.mission small{display:block;color:#cbd5e1;margin-top:2px}
-    button{border:0;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}.btn-blue{background:var(--blue);color:#082f49}.btn-green{background:var(--green);color:#052e16}.btn-red{background:var(--red);color:#450a0a}.btn-yellow{background:var(--yellow);color:#422006}.btn-gray{background:#334155;color:#f8fafc}
-    .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.color-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.color-btn{width:38px;height:38px;border-radius:50%;border:3px solid transparent}.color-btn.active{border-color:white}
-    .stage{overflow:hidden}.stage-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid rgba(148,163,184,.18)}.stage-head h2{margin:0;font-size:22px}.stage-head p{margin:4px 0 0;color:var(--muted)}.badge{background:#082f49;color:#bae6fd;border:1px solid rgba(56,189,248,.35);border-radius:999px;padding:7px 10px;white-space:nowrap;font-size:13px}
-    .canvas-wrap{position:relative;margin:14px auto;width:min(900px,96%);aspect-ratio:16/10;background:#e0f2fe;border-radius:18px;overflow:hidden;touch-action:none;border:1px solid rgba(226,232,240,.35)} canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}#bgCanvas{z-index:1}#drawCanvas{z-index:2}
-    .info-grid{width:min(900px,96%);margin:0 auto 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.info-card{background:rgba(30,41,59,.9);border:1px solid rgba(148,163,184,.18);border-radius:16px;padding:12px;font-size:14px;line-height:1.55}.answer{width:min(900px,96%);margin:0 auto 18px}.alert{display:none;margin-top:10px;padding:11px;border-radius:14px;background:#052e16;color:#dcfce7;border:1px solid rgba(34,197,94,.4)}.map-upload{display:none}.map-upload.show{display:block}.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}.progress{height:10px;background:#334155;border-radius:99px;overflow:hidden;margin:8px 0 12px}.bar{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#38bdf8)}.loading{opacity:.6;pointer-events:none}
-    @media(max-width:900px){.app{grid-template-columns:1fr}.info-grid{grid-template-columns:1fr}}
+    :root{
+      --bg:#030712; --panel:rgba(15,23,42,.78); --panel2:rgba(2,6,23,.72);
+      --text:#f8fafc; --muted:#9ca3af; --cyan:#22d3ee; --blue:#60a5fa;
+      --green:#34d399; --red:#fb7185; --yellow:#facc15; --purple:#a78bfa;
+      --line:rgba(148,163,184,.26); --glow:0 0 40px rgba(34,211,238,.18);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; color:var(--text);
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(34,211,238,.28), transparent 34%),
+        radial-gradient(circle at 85% 8%, rgba(167,139,250,.25), transparent 28%),
+        linear-gradient(135deg,#020617,#0f172a 52%,#020617);
+      overflow-x:hidden;
+    }
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none; opacity:.18;
+      background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+      background-size:42px 42px;
+      mask-image:radial-gradient(circle at center, black, transparent 75%);
+    }
+    header{padding:24px 16px 12px;text-align:center;position:relative}
+    .logo{
+      display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border:1px solid var(--line);
+      border-radius:999px; background:rgba(2,6,23,.55); box-shadow:var(--glow); color:#cffafe; font-weight:800;
+    }
+    .logo-dot{width:12px;height:12px;border-radius:50%;background:var(--cyan);box-shadow:0 0 18px var(--cyan)}
+    h1{font-size:clamp(30px,6vw,62px);margin:12px 0 4px;letter-spacing:-1px}
+    header p{margin:0;color:#cbd5e1;font-size:clamp(14px,2.4vw,18px)}
+    .shell{
+      width:min(1240px,96vw); margin:18px auto 30px; display:grid; grid-template-columns:360px 1fr; gap:16px;
+    }
+    .card{
+      border:1px solid var(--line); background:var(--panel); backdrop-filter:blur(18px);
+      border-radius:26px; box-shadow:0 22px 70px rgba(0,0,0,.35), var(--glow);
+    }
+    .side{padding:16px}
+    .stage{overflow:hidden}
+    label{display:block;color:#dbeafe;font-size:13px;margin-bottom:6px;font-weight:700}
+    select,input,textarea{
+      width:100%; border:1px solid rgba(148,163,184,.32); background:rgba(2,6,23,.72);
+      color:var(--text); border-radius:16px; padding:12px 13px; font-size:15px; outline:none;
+    }
+    select:focus,input:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+    textarea{min-height:96px;resize:vertical}
+    .field{margin-bottom:12px}
+    .student-card{
+      display:flex;gap:10px;align-items:center;padding:12px;border:1px solid rgba(148,163,184,.22);
+      background:rgba(15,23,42,.72);border-radius:18px;margin-bottom:12px;
+    }
+    .avatar{width:46px;height:46px;border-radius:16px;background:linear-gradient(135deg,var(--cyan),var(--purple));display:grid;place-items:center;color:#020617;font-weight:900}
+    .student-card b{display:block}.student-card span{color:var(--muted);font-size:13px}
+    .mission-list{display:grid;gap:9px;margin:10px 0 14px}
+    .mission{
+      text-align:left; border:1px solid rgba(148,163,184,.22); background:linear-gradient(135deg,rgba(15,23,42,.9),rgba(2,6,23,.75));
+      color:var(--text); border-radius:18px; padding:12px; cursor:pointer; transition:.18s; position:relative; overflow:hidden;
+    }
+    .mission::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);transform:translateX(-120%)}
+    .mission:hover::after{animation:shine .7s}
+    @keyframes shine{to{transform:translateX(120%)}}
+    .mission.active{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.12),0 0 24px rgba(34,211,238,.18)}
+    .mission.locked{opacity:.42;filter:grayscale(1);cursor:not-allowed}
+    .mission b{font-size:15px}.mission small{display:block;color:#cbd5e1;margin-top:3px}
+    .progress{height:10px;background:#1f2937;border-radius:999px;overflow:hidden;margin:10px 0 12px}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--cyan),var(--purple))}
+    .color-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+    .color-btn{width:38px;height:38px;border-radius:14px;border:3px solid transparent;cursor:pointer}
+    .color-btn.active{border-color:white;box-shadow:0 0 18px rgba(255,255,255,.25)}
+    .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    button{
+      border:0; border-radius:16px; padding:12px 13px; font-weight:900; cursor:pointer; font-size:14px;
+      transition:.15s transform,.15s filter;
+    }
+    button:hover{transform:translateY(-1px);filter:brightness(1.05)}
+    .btn-cyan{background:linear-gradient(135deg,#22d3ee,#60a5fa);color:#082f49}
+    .btn-green{background:linear-gradient(135deg,#34d399,#22c55e);color:#052e16}
+    .btn-red{background:linear-gradient(135deg,#fb7185,#ef4444);color:#450a0a}
+    .btn-yellow{background:linear-gradient(135deg,#fde047,#f59e0b);color:#422006}
+    .btn-dark{background:#334155;color:#f8fafc}
+    .stage-head{
+      display:flex;justify-content:space-between;gap:12px;align-items:center;padding:16px 18px;
+      background:linear-gradient(135deg,rgba(8,47,73,.88),rgba(15,23,42,.9));border-bottom:1px solid var(--line)
+    }
+    .stage-head h2{margin:0;font-size:clamp(20px,3vw,30px)}
+    .stage-head p{margin:4px 0 0;color:#cbd5e1}
+    .badge{white-space:nowrap;border:1px solid rgba(34,211,238,.34);background:rgba(8,47,73,.7);color:#cffafe;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:900}
+    .canvas-wrap{
+      position:relative;margin:16px auto 12px;width:min(920px,96%);aspect-ratio:16/10;border-radius:26px;overflow:hidden;
+      border:1px solid rgba(226,232,240,.32);background:#dbeafe;touch-action:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 24px 70px rgba(0,0,0,.32)
+    }
+    canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+    #bgCanvas{z-index:1} #drawCanvas{z-index:2}
+    .info-grid{width:min(920px,96%);margin:0 auto 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .info-card{
+      border:1px solid rgba(148,163,184,.2);background:rgba(15,23,42,.72);border-radius:20px;padding:13px;line-height:1.55;color:#e0f2fe
+    }
+    .info-card b{color:#fff}
+    .answer{width:min(920px,96%);margin:0 auto 18px}
+    .alert{display:none;margin-top:10px;padding:12px;border-radius:18px;border:1px solid rgba(34,197,94,.35);background:#052e16;color:#dcfce7}
+    .map-upload{display:none}.map-upload.show{display:block}
+    .note{color:var(--muted);font-size:12px;line-height:1.5;margin-top:8px}
+    .loading{opacity:.62;pointer-events:none}
+    .empty-student{color:#fef3c7;border:1px solid rgba(250,204,21,.3);background:rgba(113,63,18,.28);border-radius:16px;padding:10px;font-size:13px;margin-top:8px;display:none}
+    @media(max-width:930px){.shell{grid-template-columns:1fr}.info-grid{grid-template-columns:1fr}.stage-head{align-items:flex-start;flex-direction:column}.tools{grid-template-columns:1fr 1fr}}
   </style>
 </head>
 <body>
-<header><h1>Air Flow Mission</h1><p>ฝึกวาดเส้นการเคลื่อนที่ของอากาศ จากสถานการณ์จำลองสู่แผนที่อากาศจริง</p></header>
-<main class="app">
-  <aside class="panel">
-    <div class="field"><label>ห้องเรียน</label><select id="classroom"><option value="">เลือกห้อง</option><option>4/2</option><option>4/4</option><option>4/6</option><option>4/8</option><option>4/10</option><option>6/6</option><option>6/7</option></select></div>
-    <div class="row"><div class="field"><label>เลขที่</label><input id="studentNo" placeholder="เช่น 12"></div><div class="field"><label>รหัสนักเรียน</label><input id="studentCode" placeholder="ไม่บังคับ"></div></div>
-    <div class="field"><label>ชื่อ-สกุล</label><input id="studentName" placeholder="ชื่อ-สกุลนักเรียน"></div>
-    <div class="progress"><div class="bar" id="progressBar"></div></div><label>เลือกด่าน</label><div class="missions" id="missionList"></div>
-    <label>สีเส้น</label><div class="color-row"><button class="color-btn active" data-color="#ef4444" style="background:#ef4444"></button><button class="color-btn" data-color="#2563eb" style="background:#2563eb"></button><button class="color-btn" data-color="#16a34a" style="background:#16a34a"></button><button class="color-btn" data-color="#facc15" style="background:#facc15"></button><button class="color-btn" data-color="#111827" style="background:#111827"></button></div>
-    <div class="field"><label>ความหนาเส้น: <span id="sizeText">5</span></label><input id="brushSize" type="range" min="2" max="18" value="5"></div>
-    <div class="map-upload" id="mapUploadBox"><label>ด่าน 5: อัปโหลดแผนที่อากาศจริง</label><input id="mapUpload" type="file" accept="image/*"><div class="note">ดาวน์โหลดภาพแผนที่อากาศจากกรมอุตุนิยมวิทยา แล้วนำมาอัปโหลดตรงนี้</div></div>
-    <div class="tools"><button class="btn-gray" id="undoBtn">ย้อนกลับ</button><button class="btn-red" id="clearBtn">ล้างภาพ</button><button class="btn-yellow" id="downloadBtn">บันทึก PNG</button><button class="btn-green" id="submitBtn">ส่งเข้า Supabase</button></div>
-    <div class="note">หลังส่ง ระบบจะอัปโหลดภาพไปยัง Supabase Storage และบันทึกข้อมูลลงตาราง submissions</div>
+<header>
+  <div class="logo"><span class="logo-dot"></span> Air Flow Mission by Kru Dew</div>
+  <h1>วาดเส้นการเคลื่อนที่ของอากาศ</h1>
+  <p>ฝึกคิด วิเคราะห์ และสร้างแบบจำลอง จากสถานการณ์จำลองสู่แผนที่อากาศจริง</p>
+</header>
+
+<main class="shell">
+  <aside class="card side">
+    <div class="field">
+      <label>เลือกกลุ่ม / ห้องเรียน</label>
+      <select id="groupSelect"><option value="">กำลังโหลดกลุ่ม...</option></select>
+    </div>
+    <div class="field">
+      <label>เลือกชื่อนักเรียน</label>
+      <select id="studentSelect"><option value="">เลือกกลุ่มก่อน</option></select>
+      <div id="emptyStudent" class="empty-student">ยังไม่มีรายชื่อนักเรียนในกลุ่มนี้ ให้ครูเพิ่มรายชื่อที่หน้า Admin ก่อน</div>
+    </div>
+
+    <div class="student-card">
+      <div class="avatar" id="avatarText">?</div>
+      <div>
+        <b id="studentPreview">ยังไม่ได้เลือกนักเรียน</b>
+        <span id="studentMeta">เลือกกลุ่มและชื่อก่อนเริ่มทำภารกิจ</span>
+      </div>
+    </div>
+
+    <div class="progress"><div class="bar" id="progressBar"></div></div>
+
+    <label>เลือกด่าน</label>
+    <div class="mission-list" id="missionList"></div>
+
+    <label>สีเส้น</label>
+    <div class="color-row">
+      <button class="color-btn active" data-color="#fb7185" style="background:#fb7185" title="อากาศร้อน/เน้นสีแดง"></button>
+      <button class="color-btn" data-color="#2563eb" style="background:#2563eb" title="อากาศเย็น/สีน้ำเงิน"></button>
+      <button class="color-btn" data-color="#22c55e" style="background:#22c55e" title="ทิศทางลม"></button>
+      <button class="color-btn" data-color="#facc15" style="background:#facc15" title="บริเวณสำคัญ"></button>
+      <button class="color-btn" data-color="#111827" style="background:#111827" title="สีดำ"></button>
+    </div>
+
+    <div class="field">
+      <label>ความหนาเส้น: <span id="sizeText">5</span></label>
+      <input id="brushSize" type="range" min="2" max="18" value="5">
+    </div>
+
+    <div class="map-upload" id="mapUploadBox">
+      <label>ด่าน 5: อัปโหลดภาพแผนที่อากาศจริง</label>
+      <input id="mapUpload" type="file" accept="image/*">
+      <div class="note">ใช้ภาพแผนที่อากาศจริง แล้ววาดเส้นลมทับบนภาพ</div>
+    </div>
+
+    <div class="tools">
+      <button class="btn-dark" id="undoBtn">ย้อนกลับ</button>
+      <button class="btn-red" id="clearBtn">ล้างภาพ</button>
+      <button class="btn-yellow" id="downloadBtn">บันทึก PNG</button>
+      <button class="btn-green" id="submitBtn">ส่งงาน</button>
+    </div>
+    <div class="note">ระบบจะบันทึกภาพคำตอบและคำอธิบายลง Supabase</div>
   </aside>
-  <section class="stage">
-    <div class="stage-head"><div><h2 id="missionTitle"></h2><p id="missionDesc"></p></div><div class="badge" id="missionBadge"></div></div>
-    <div class="canvas-wrap" id="canvasWrap"><canvas id="bgCanvas"></canvas><canvas id="drawCanvas"></canvas></div>
-    <div class="info-grid"><div class="info-card"><b>ภารกิจ</b><div id="taskText"></div></div><div class="info-card"><b>หลักคิดวิทยาศาสตร์</b><div id="scienceText"></div></div></div>
-    <div class="answer"><label>คำอธิบายของนักเรียน</label><textarea id="explanation" placeholder="อธิบายว่าอากาศเคลื่อนที่จากบริเวณใดไปบริเวณใด เพราะอะไร"></textarea><div class="alert" id="alertBox"></div></div>
+
+  <section class="card stage">
+    <div class="stage-head">
+      <div>
+        <h2 id="missionTitle"></h2>
+        <p id="missionDesc"></p>
+      </div>
+      <div class="badge" id="missionBadge"></div>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="bgCanvas"></canvas>
+      <canvas id="drawCanvas"></canvas>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card"><b>ภารกิจ</b><div id="taskText"></div></div>
+      <div class="info-card"><b>หลักคิดที่ควรใช้</b><div id="scienceText"></div></div>
+    </div>
+
+    <div class="answer">
+      <label>คำอธิบายของนักเรียน</label>
+      <textarea id="explanation" placeholder="อธิบายว่าเลือกวาดเส้นแบบนี้เพราะอะไร โดยใช้คำว่า อุณหภูมิ ความหนาแน่น ความกดอากาศ หรือการยกตัวของอากาศ ให้สัมพันธ์กับภาพ"></textarea>
+      <div class="alert" id="alertBox"></div>
+    </div>
   </section>
 </main>
+
 <script>
-const CFG=window.APP_CONFIG;const sb=supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY);
-const missions=[{id:1,title:"ด่าน 1: อากาศร้อน–อากาศเย็น",badge:"ง่าย",desc:"พิจารณาภาพ แล้ววาดทิศทางการเคลื่อนที่ของอากาศ",task:"สังเกตบริเวณที่มีอากาศร้อนและอากาศเย็น แล้ววาดลูกศรแสดงทิศทางการเคลื่อนที่ของอากาศตามความเข้าใจ",science:"ให้นักเรียนใช้ความรู้เรื่องอุณหภูมิ ความหนาแน่น และการเคลื่อนที่ของอากาศมาช่วยตัดสินใจ",drawBg:drawLevel1},{id:2,title:"ด่าน 2: ความกดอากาศสูง–ต่ำ",badge:"พื้นฐาน",desc:"พิจารณาบริเวณ H และ L แล้ววาดทิศทางลม",task:"วิเคราะห์ตำแหน่งความกดอากาศสูง H และความกดอากาศต่ำ L แล้ววาดเส้นทางการเคลื่อนที่ของอากาศ",science:"ให้นักเรียนใช้ความสัมพันธ์ระหว่างความกดอากาศกับทิศทางลมในการอธิบายคำตอบ",drawBg:drawLevel2},{id:3,title:"ด่าน 3: แผนที่จำลองประเทศไทย",badge:"ปานกลาง",desc:"ใช้แผนที่จำลองเพื่อคาดการณ์ทิศทางลม",task:"พิจารณาตำแหน่ง H และ L รอบประเทศไทย แล้ววาดเส้นลมหลักที่น่าจะมีผลต่อประเทศไทย",science:"เมื่อทราบตำแหน่งของระบบความกดอากาศ นักเรียนสามารถสร้างแบบจำลองทิศทางการเคลื่อนที่ของมวลอากาศได้",drawBg:drawLevel3},{id:4,title:"ด่าน 4: สถานการณ์กึ่งจริง",badge:"ท้าทาย",desc:"วิเคราะห์หลายระบบความกดอากาศพร้อมกัน",task:"วาดทิศทางลมหลัก และระบุบริเวณที่คาดว่าอากาศอาจยกตัวหรือเกิดเมฆฝน",science:"บริเวณที่ลมมาบรรจบกัน หรือมีอากาศยกตัว มักสัมพันธ์กับการเกิดเมฆและฝน",drawBg:drawLevel4},{id:5,title:"ด่าน 5: แผนที่อากาศจริง",badge:"ประยุกต์ใช้จริง",desc:"ใช้ภาพแผนที่อากาศจริงจากกรมอุตุนิยมวิทยา",task:"อัปโหลดแผนที่อากาศจริง แล้ววาดเส้นการเคลื่อนที่ของอากาศ พร้อมอธิบายผลต่อสภาพอากาศ",science:"การอ่านแผนที่อากาศจริงช่วยเชื่อมโยงความรู้เรื่องความกดอากาศ ลม และสภาพอากาศในชีวิตประจำวัน",drawBg:drawLevel5}];
-let currentMission=0,brushColor="#ef4444",brushSize=5,drawing=false,last=null,history=[],unlocked=1;const bgCanvas=document.getElementById("bgCanvas"),drawCanvas=document.getElementById("drawCanvas"),wrap=document.getElementById("canvasWrap");const bg=bgCanvas.getContext("2d"),ctx=drawCanvas.getContext("2d");
-function alertMsg(msg,ok=true){const el=document.getElementById("alertBox");el.style.display="block";el.style.background=ok?"#052e16":"#450a0a";el.style.color=ok?"#dcfce7":"#fee2e2";el.innerHTML=msg}function setLoading(v){document.body.classList.toggle("loading",v)}
-function buildMissionList(){const list=document.getElementById("missionList");list.innerHTML="";missions.forEach((m,i)=>{const b=document.createElement("button");b.className="mission"+(i===currentMission?" active":"")+(m.id>unlocked?" locked":"");b.innerHTML=`<b>${m.title}</b><small>${m.desc}</small>`;b.onclick=()=>{if(m.id<=unlocked)loadMission(i);else alertMsg("ต้องส่งด่านก่อนหน้าให้เรียบร้อยก่อน จึงจะปลดล็อกด่านนี้",false)};list.appendChild(b)});document.getElementById("progressBar").style.width=((unlocked-1)/4*100)+"%"}
-function loadMission(i){currentMission=i;document.getElementById("missionTitle").textContent=missions[i].title;document.getElementById("missionDesc").textContent=missions[i].desc;document.getElementById("missionBadge").textContent=missions[i].badge;document.getElementById("taskText").textContent=missions[i].task;document.getElementById("scienceText").textContent=missions[i].science;document.getElementById("mapUploadBox").classList.toggle("show",missions[i].id===5);document.getElementById("explanation").value="";document.getElementById("alertBox").style.display="none";clearDraw();redrawBackground();buildMissionList()}
-function setupCanvas(){const rect=wrap.getBoundingClientRect(),dpr=window.devicePixelRatio||1;[bgCanvas,drawCanvas].forEach(c=>{c.width=rect.width*dpr;c.height=rect.height*dpr;c.style.width=rect.width+"px";c.style.height=rect.height+"px"});bg.setTransform(dpr,0,0,dpr,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);redrawBackground()}function redrawBackground(){bg.clearRect(0,0,bgCanvas.clientWidth,bgCanvas.clientHeight);missions[currentMission].drawBg()}function clearDraw(){ctx.clearRect(0,0,drawCanvas.clientWidth,drawCanvas.clientHeight);history=[]}function saveHistory(){history.push(drawCanvas.toDataURL());if(history.length>30)history.shift()}function undo(){if(!history.length){clearDraw();return}const img=new Image();img.onload=()=>{ctx.clearRect(0,0,drawCanvas.clientWidth,drawCanvas.clientHeight);ctx.drawImage(img,0,0,drawCanvas.clientWidth,drawCanvas.clientHeight)};img.src=history.pop()}function getPos(e){const r=drawCanvas.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top}}function startDraw(e){e.preventDefault();saveHistory();drawing=true;last=getPos(e)}function moveDraw(e){if(!drawing)return;e.preventDefault();const p=getPos(e);ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=brushColor;ctx.lineWidth=brushSize;ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();drawArrowHead(last.x,last.y,p.x,p.y);last=p}function endDraw(){drawing=false;last=null}function drawArrowHead(x1,y1,x2,y2){const angle=Math.atan2(y2-y1,x2-x1),len=Math.max(10,brushSize*2.2);ctx.fillStyle=brushColor;ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-len*Math.cos(angle-Math.PI/7),y2-len*Math.sin(angle-Math.PI/7));ctx.lineTo(x2-len*Math.cos(angle+Math.PI/7),y2-len*Math.sin(angle+Math.PI/7));ctx.closePath();ctx.fill()}function combinedCanvas(){const temp=document.createElement("canvas");temp.width=bgCanvas.width;temp.height=bgCanvas.height;const t=temp.getContext("2d");t.drawImage(bgCanvas,0,0);t.drawImage(drawCanvas,0,0);return temp}function downloadPNG(){const temp=combinedCanvas();const link=document.createElement("a");link.download=`airflow-mission-${missions[currentMission].id}.png`;link.href=temp.toDataURL("image/png");link.click()}
+const CFG = window.APP_CONFIG;
+const sb = supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+
+const missions = [
+  {id:1,title:"ด่าน 1: อากาศร้อน–อากาศเย็น",badge:"Level 01",desc:"สังเกตอุณหภูมิและคาดการณ์การเคลื่อนที่ของอากาศ",task:"พิจารณาบริเวณ A และ B แล้ววาดเส้นแสดงการเคลื่อนที่ของอากาศตามความเข้าใจของนักเรียน",science:"ใช้ความรู้เรื่องอุณหภูมิ ความหนาแน่น และการลอยตัว/จมตัวของอากาศมาช่วยตัดสินใจ",drawBg:drawLevel1},
+  {id:2,title:"ด่าน 2: ความกดอากาศสูง–ต่ำ",badge:"Level 02",desc:"วิเคราะห์ H และ L เพื่อคาดการณ์ทิศทางลม",task:"พิจารณาตำแหน่ง H และ L แล้ววาดเส้นทางการเคลื่อนที่ของอากาศ พร้อมอธิบายเหตุผล",science:"ใช้ความสัมพันธ์ระหว่างความกดอากาศกับการเกิดลม โดยไม่ต้องดูเฉลยจากระบบ",drawBg:drawLevel2},
+  {id:3,title:"ด่าน 3: แผนที่จำลองประเทศไทย",badge:"Level 03",desc:"คาดการณ์ลมที่มีผลต่อประเทศไทย",task:"ดูตำแหน่งระบบความกดอากาศรอบประเทศไทย แล้ววาดทิศทางลมหลักที่น่าจะส่งผลต่อพื้นที่",science:"นำความรู้เรื่องระบบความกดอากาศไปสร้างแบบจำลองทิศทางการเคลื่อนที่ของมวลอากาศ",drawBg:drawLevel3},
+  {id:4,title:"ด่าน 4: สถานการณ์กึ่งจริง",badge:"Level 04",desc:"วิเคราะห์หลายระบบอากาศพร้อมกัน",task:"วาดทิศทางลมหลัก และวงบริเวณที่คาดว่าอากาศอาจยกตัวหรือเกิดเมฆฝน",science:"ใช้หลักลมมาบรรจบ การยกตัวของอากาศ และความสัมพันธ์กับการเกิดเมฆฝน",drawBg:drawLevel4},
+  {id:5,title:"ด่าน 5: แผนที่อากาศจริง",badge:"Final Mission",desc:"ใช้แผนที่อากาศจริงในการวิเคราะห์",task:"อัปโหลดภาพแผนที่อากาศจริง แล้ววาดเส้นการเคลื่อนที่ของอากาศ พร้อมอธิบายผลต่อสภาพอากาศ",science:"เชื่อมโยงความรู้เรื่องความกดอากาศ ลม และสภาพอากาศเข้ากับข้อมูลจริง",drawBg:drawLevel5}
+];
+
+let groups=[], students=[], selectedGroup=null, selectedStudent=null;
+let currentMission=0, unlocked=1, brushColor="#fb7185", brushSize=5, drawing=false, last=null, history=[];
+const bgCanvas=document.getElementById("bgCanvas"), drawCanvas=document.getElementById("drawCanvas"), wrap=document.getElementById("canvasWrap");
+const bg=bgCanvas.getContext("2d"), ctx=drawCanvas.getContext("2d");
+
+function alertMsg(msg, ok=true){
+  const el=document.getElementById("alertBox");
+  el.style.display="block";
+  el.style.background=ok?"#052e16":"#450a0a";
+  el.style.color=ok?"#dcfce7":"#fee2e2";
+  el.innerHTML=msg;
+}
+function setLoading(v){document.body.classList.toggle("loading",v)}
+
+async function initData(){
+  try{
+    const g = await sb.from("student_groups").select("*").order("sort_order",{ascending:true}).order("group_name",{ascending:true});
+    if(g.error) throw g.error;
+    groups = g.data || [];
+    renderGroups();
+  }catch(err){
+    document.getElementById("groupSelect").innerHTML = `<option value="">โหลดกลุ่มไม่สำเร็จ</option>`;
+    alertMsg("โหลดข้อมูลกลุ่มไม่สำเร็จ: " + (err.message || err), false);
+  }
+}
+
+function renderGroups(){
+  const sel=document.getElementById("groupSelect");
+  sel.innerHTML = `<option value="">เลือกกลุ่ม / ห้องเรียน</option>` + groups.map(g=>`<option value="${g.id}">${escapeHtml(g.group_name)}</option>`).join("");
+}
+
+async function loadStudents(groupId){
+  const empty=document.getElementById("emptyStudent");
+  empty.style.display="none";
+  const sel=document.getElementById("studentSelect");
+  sel.innerHTML=`<option value="">กำลังโหลดรายชื่อ...</option>`;
+  selectedStudent=null; updateStudentPreview();
+
+  if(!groupId){ sel.innerHTML=`<option value="">เลือกกลุ่มก่อน</option>`; return; }
+  selectedGroup = groups.find(g=>g.id===groupId) || null;
+  try{
+    const s = await sb.from("students").select("*").eq("group_id",groupId).eq("is_active",true).order("sort_order",{ascending:true}).order("student_no",{ascending:true});
+    if(s.error) throw s.error;
+    students = s.data || [];
+    if(!students.length){
+      sel.innerHTML=`<option value="">ยังไม่มีรายชื่อ</option>`;
+      empty.style.display="block";
+      return;
+    }
+    sel.innerHTML=`<option value="">เลือกชื่อนักเรียน</option>` + students.map(st=>`<option value="${st.id}">${escapeHtml(st.student_no||"-")} | ${escapeHtml(st.student_name)}</option>`).join("");
+  }catch(err){
+    sel.innerHTML=`<option value="">โหลดรายชื่อไม่สำเร็จ</option>`;
+    alertMsg("โหลดรายชื่อนักเรียนไม่สำเร็จ: " + (err.message || err), false);
+  }
+}
+
+function selectStudent(id){
+  selectedStudent = students.find(s=>s.id===id) || null;
+  updateStudentPreview();
+  loadProgress();
+}
+
+function updateStudentPreview(){
+  document.getElementById("studentPreview").textContent = selectedStudent ? selectedStudent.student_name : "ยังไม่ได้เลือกนักเรียน";
+  document.getElementById("studentMeta").textContent = selectedStudent ? `${selectedGroup?.group_name || ""} เลขที่ ${selectedStudent.student_no || "-"}` : "เลือกกลุ่มและชื่อก่อนเริ่มทำภารกิจ";
+  document.getElementById("avatarText").textContent = selectedStudent ? (selectedStudent.student_no || selectedStudent.student_name[0] || "?") : "?";
+}
+
+async function loadProgress(){
+  if(!selectedStudent){unlocked=1; currentMission=0; buildMissionList(); return;}
+  try{
+    const q = await sb.from("submissions").select("mission_no").eq("student_id", selectedStudent.id);
+    if(q.error) throw q.error;
+    const done = new Set((q.data||[]).map(r=>Number(r.mission_no)));
+    let next=1;
+    for(let i=1;i<=5;i++){ if(done.has(i)) next=i+1; else break; }
+    unlocked = Math.min(5, Math.max(1,next));
+    if(currentMission+1>unlocked) currentMission=unlocked-1;
+    buildMissionList();
+    loadMission(currentMission);
+  }catch(e){
+    unlocked=1; buildMissionList();
+  }
+}
+
+function buildMissionList(){
+  const list=document.getElementById("missionList");
+  list.innerHTML="";
+  missions.forEach((m,i)=>{
+    const b=document.createElement("button");
+    b.className="mission"+(i===currentMission?" active":"")+(m.id>unlocked?" locked":"");
+    b.innerHTML=`<b>${m.title}</b><small>${m.desc}</small>`;
+    b.onclick=()=>{
+      if(m.id<=unlocked) loadMission(i);
+      else alertMsg("ต้องส่งด่านก่อนหน้าให้เรียบร้อยก่อน จึงจะปลดล็อกด่านนี้", false);
+    };
+    list.appendChild(b);
+  });
+  document.getElementById("progressBar").style.width=((unlocked-1)/4*100)+"%";
+}
+
+function loadMission(i){
+  currentMission=i;
+  document.getElementById("missionTitle").textContent=missions[i].title;
+  document.getElementById("missionDesc").textContent=missions[i].desc;
+  document.getElementById("missionBadge").textContent=missions[i].badge;
+  document.getElementById("taskText").textContent=missions[i].task;
+  document.getElementById("scienceText").textContent=missions[i].science;
+  document.getElementById("mapUploadBox").classList.toggle("show", missions[i].id===5);
+  document.getElementById("explanation").value="";
+  document.getElementById("alertBox").style.display="none";
+  clearDraw(); redrawBackground(); buildMissionList();
+}
+
+function setupCanvas(){
+  const rect=wrap.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  [bgCanvas,drawCanvas].forEach(c=>{
+    c.width=rect.width*dpr; c.height=rect.height*dpr;
+    c.style.width=rect.width+"px"; c.style.height=rect.height+"px";
+  });
+  bg.setTransform(dpr,0,0,dpr,0,0);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  redrawBackground();
+}
+function redrawBackground(){bg.clearRect(0,0,bgCanvas.clientWidth,bgCanvas.clientHeight);missions[currentMission].drawBg()}
+function clearDraw(){ctx.clearRect(0,0,drawCanvas.clientWidth,drawCanvas.clientHeight);history=[]}
+function saveHistory(){history.push(drawCanvas.toDataURL()); if(history.length>30) history.shift()}
+function undo(){
+  if(!history.length){clearDraw();return}
+  const img=new Image();
+  img.onload=()=>{ctx.clearRect(0,0,drawCanvas.clientWidth,drawCanvas.clientHeight);ctx.drawImage(img,0,0,drawCanvas.clientWidth,drawCanvas.clientHeight)};
+  img.src=history.pop();
+}
+function getPos(e){const r=drawCanvas.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top}}
+function startDraw(e){e.preventDefault();saveHistory();drawing=true;last=getPos(e)}
+function moveDraw(e){
+  if(!drawing)return; e.preventDefault();
+  const p=getPos(e);
+  ctx.lineCap="round"; ctx.lineJoin="round"; ctx.strokeStyle=brushColor; ctx.lineWidth=brushSize;
+  ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke();
+  drawArrowHead(last.x,last.y,p.x,p.y); last=p;
+}
+function endDraw(){drawing=false;last=null}
+function drawArrowHead(x1,y1,x2,y2){
+  const angle=Math.atan2(y2-y1,x2-x1),len=Math.max(10,brushSize*2.2);
+  ctx.fillStyle=brushColor; ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-len*Math.cos(angle-Math.PI/7),y2-len*Math.sin(angle-Math.PI/7));
+  ctx.lineTo(x2-len*Math.cos(angle+Math.PI/7),y2-len*Math.sin(angle+Math.PI/7));
+  ctx.closePath(); ctx.fill();
+}
+function combinedCanvas(){
+  const temp=document.createElement("canvas");
+  temp.width=bgCanvas.width; temp.height=bgCanvas.height;
+  const t=temp.getContext("2d");
+  t.drawImage(bgCanvas,0,0); t.drawImage(drawCanvas,0,0);
+  return temp;
+}
+function downloadPNG(){
+  const temp=combinedCanvas(); const link=document.createElement("a");
+  link.download=`airflow-mission-${missions[currentMission].id}.png`;
+  link.href=temp.toDataURL("image/png"); link.click();
+}
 function safeAscii(v){return String(v||"unknown").trim().replace(/\//g,"-").replace(/[^a-zA-Z0-9_-]/g,"").slice(0,40)||"unknown"}
-function makeSafeFilePath(classroom,missionId,studentNo){const cls=safeAscii(classroom);const no=safeAscii(studentNo);const rand=Math.random().toString(36).slice(2,8);return `${cls}/mission-${missionId}/${Date.now()}-${no}-${rand}.png`}
-async function submitAnswer(){const student_name=document.getElementById("studentName").value.trim(),classroom=document.getElementById("classroom").value.trim(),student_no=document.getElementById("studentNo").value.trim(),explanation=document.getElementById("explanation").value.trim();if(!student_name||!classroom||!student_no){alertMsg("กรุณากรอก ห้อง เลขที่ และชื่อ-สกุล ให้ครบ",false);return}if(!explanation){alertMsg("กรุณาเขียนคำอธิบายก่อนส่งคำตอบ",false);return}try{setLoading(true);const temp=combinedCanvas();const blob=await new Promise(resolve=>temp.toBlob(resolve,"image/png",0.95));const filePath=makeSafeFilePath(classroom,missions[currentMission].id,student_no);const up=await sb.storage.from(CFG.STORAGE_BUCKET).upload(filePath,blob,{contentType:"image/png",upsert:false});if(up.error)throw up.error;const pub=sb.storage.from(CFG.STORAGE_BUCKET).getPublicUrl(filePath);const image_url=pub.data.publicUrl;const ins=await sb.from("submissions").insert({student_name,classroom,student_no,mission_no:missions[currentMission].id,explanation,image_path:filePath,image_url}).select().single();if(ins.error)throw ins.error;if(unlocked<5&&missions[currentMission].id===unlocked)unlocked++;localStorage.setItem(`airflow-unlocked-${classroom}-${student_no}-${student_name}`,String(unlocked));buildMissionList();alertMsg(`ส่งคำตอบสำเร็จ ✅<br>บันทึกด่านที่ ${missions[currentMission].id} ลง Supabase แล้ว<br>ปลดล็อกด่านถัดไปแล้ว`);if(currentMission<missions.length-1){loadMission(currentMission+1)}}catch(err){console.error(err);alertMsg("ส่งไม่สำเร็จ: "+(err.message||err),false)}finally{setLoading(false)}}
-function tryLoadProgress(){const n=document.getElementById("studentName").value.trim(),c=document.getElementById("classroom").value.trim(),no=document.getElementById("studentNo").value.trim();const v=localStorage.getItem(`airflow-unlocked-${c}-${no}-${n}`);unlocked=v?Math.max(1,Math.min(5,Number(v))):1;if(currentMission+1>unlocked)currentMission=unlocked-1;loadMission(currentMission)}["studentName","classroom","studentNo"].forEach(id=>document.getElementById(id).addEventListener("change",tryLoadProgress));
-function drawText(text,x,y,size=24,color="#0f172a",align="center"){bg.fillStyle=color;bg.font=`800 ${size}px system-ui`;bg.textAlign=align;bg.textBaseline="middle";bg.fillText(text,x,y)}function roundRect(c,x,y,w,h,r,fill,stroke){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=2;c.stroke()}}
-function drawLevel1(){const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight,grd=bg.createLinearGradient(0,0,w,h);grd.addColorStop(0,"#fecaca");grd.addColorStop(.5,"#e0f2fe");grd.addColorStop(1,"#bfdbfe");bg.fillStyle=grd;bg.fillRect(0,0,w,h);roundRect(bg,w*.1,h*.18,w*.32,h*.55,24,"rgba(239,68,68,.18)","#ef4444");roundRect(bg,w*.58,h*.18,w*.32,h*.55,24,"rgba(37,99,235,.18)","#2563eb");drawText("บริเวณ A",w*.26,h*.22,20,"#7f1d1d");drawText("อากาศร้อน",w*.26,h*.34,30,"#991b1b");drawText("ให้นักเรียนวาดทิศทาง",w*.26,h*.49,18,"#7f1d1d");drawText("การเคลื่อนที่ของอากาศ",w*.26,h*.56,18,"#7f1d1d");drawText("บริเวณ B",w*.74,h*.22,20,"#1e3a8a");drawText("อากาศเย็น",w*.74,h*.34,30,"#1e3a8a");drawText("ให้นักเรียนวาดทิศทาง",w*.74,h*.49,18,"#1e40af");drawText("การเคลื่อนที่ของอากาศ",w*.74,h*.56,18,"#1e40af");bg.fillStyle="#78350f";bg.fillRect(w*.08,h*.76,w*.84,14);drawText("พื้นผิวโลก",w*.5,h*.83,22,"#334155")}
-function drawLevel2(){const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;bg.fillStyle="#e0f2fe";bg.fillRect(0,0,w,h);bg.strokeStyle="#94a3b8";bg.lineWidth=2;for(let i=1;i<6;i++){bg.beginPath();bg.moveTo(0,h*i/6);bg.lineTo(w,h*i/6);bg.stroke();bg.beginPath();bg.moveTo(w*i/6,0);bg.lineTo(w*i/6,h);bg.stroke()}bg.beginPath();bg.arc(w*.24,h*.5,72,0,Math.PI*2);bg.fillStyle="#bfdbfe";bg.fill();bg.strokeStyle="#2563eb";bg.lineWidth=5;bg.stroke();drawText("H",w*.24,h*.48,64,"#1d4ed8");drawText("ความกดอากาศสูง",w*.24,h*.62,18,"#1e40af");bg.beginPath();bg.arc(w*.76,h*.5,72,0,Math.PI*2);bg.fillStyle="#fecaca";bg.fill();bg.strokeStyle="#dc2626";bg.lineWidth=5;bg.stroke();drawText("L",w*.76,h*.48,64,"#b91c1c");drawText("ความกดอากาศต่ำ",w*.76,h*.62,18,"#991b1b");drawText("ภารกิจ: วาดทิศทางลมจาก H ไป L",w*.5,h*.14,26,"#0f172a")}
-function drawThailandSimple(x,y,s){bg.fillStyle="#bbf7d0";bg.strokeStyle="#166534";bg.lineWidth=3;bg.beginPath();bg.moveTo(x+s*.42,y);bg.bezierCurveTo(x+s*.2,y+s*.1,x+s*.28,y+s*.32,x+s*.35,y+s*.42);bg.bezierCurveTo(x+s*.48,y+s*.58,x+s*.28,y+s*.8,x+s*.5,y+s);bg.bezierCurveTo(x+s*.66,y+s*.75,x+s*.6,y+s*.56,x+s*.72,y+s*.38);bg.bezierCurveTo(x+s*.82,y+s*.2,x+s*.62,y+s*.06,x+s*.42,y);bg.fill();bg.stroke()}function drawLevel3(){const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;bg.fillStyle="#dff6ff";bg.fillRect(0,0,w,h);drawThailandSimple(w*.38,h*.13,h*.68);drawText("H",w*.18,h*.28,62,"#1d4ed8");drawText("จีนตอนใต้",w*.18,h*.39,18,"#1e40af");drawText("L",w*.76,h*.62,62,"#b91c1c");drawText("ทะเลจีนใต้",w*.76,h*.73,18,"#991b1b");bg.strokeStyle="#64748b";bg.setLineDash([8,8]);bg.lineWidth=3;bg.beginPath();bg.moveTo(w*.05,h*.5);bg.quadraticCurveTo(w*.5,h*.3,w*.95,h*.55);bg.stroke();bg.setLineDash([]);drawText("แผนที่จำลอง",w*.5,h*.08,28,"#0f172a")}function drawLevel4(){const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;bg.fillStyle="#e0f2fe";bg.fillRect(0,0,w,h);drawThailandSimple(w*.39,h*.12,h*.7);[{t:"H",x:.18,y:.2,c:"#1d4ed8",label:"มวลอากาศเย็น"},{t:"L",x:.75,y:.27,c:"#b91c1c",label:"หย่อมความกดต่ำ"},{t:"L",x:.28,y:.78,c:"#b91c1c",label:"ทะเลอันดามัน"},{t:"H",x:.84,y:.78,c:"#1d4ed8",label:"แปซิฟิก"}].forEach(o=>{bg.beginPath();bg.arc(w*o.x,h*o.y,46,0,Math.PI*2);bg.fillStyle=o.t==="H"?"#bfdbfe":"#fecaca";bg.fill();bg.strokeStyle=o.c;bg.lineWidth=4;bg.stroke();drawText(o.t,w*o.x,h*o.y,42,o.c);drawText(o.label,w*o.x,h*o.y+62,15,o.c)});bg.strokeStyle="#f59e0b";bg.lineWidth=4;bg.setLineDash([10,8]);bg.beginPath();bg.moveTo(w*.18,h*.58);bg.bezierCurveTo(w*.35,h*.45,w*.55,h*.48,w*.75,h*.58);bg.stroke();bg.setLineDash([]);drawText("แนวลมบรรจบโดยประมาณ",w*.5,h*.66,18,"#92400e")}function drawLevel5(){const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;bg.fillStyle="#cbd5e1";bg.fillRect(0,0,w,h);drawText("ด่าน 5",w/2,h*.28,34,"#0f172a");drawText("อัปโหลดภาพแผนที่อากาศจริงจากกรมอุตุนิยมวิทยา",w/2,h*.4,20,"#0f172a");drawText("แล้ววาดเส้นการเคลื่อนที่ของอากาศบนภาพ",w/2,h*.48,20,"#0f172a");bg.strokeStyle="#475569";bg.lineWidth=3;bg.setLineDash([10,10]);bg.strokeRect(w*.12,h*.15,w*.76,h*.62);bg.setLineDash([])}
-document.querySelectorAll(".color-btn").forEach(btn=>btn.onclick=()=>{document.querySelectorAll(".color-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");brushColor=btn.dataset.color});document.getElementById("brushSize").oninput=e=>{brushSize=Number(e.target.value);document.getElementById("sizeText").textContent=brushSize};document.getElementById("undoBtn").onclick=undo;document.getElementById("clearBtn").onclick=clearDraw;document.getElementById("downloadBtn").onclick=downloadPNG;document.getElementById("submitBtn").onclick=submitAnswer;drawCanvas.addEventListener("mousedown",startDraw);drawCanvas.addEventListener("mousemove",moveDraw);window.addEventListener("mouseup",endDraw);drawCanvas.addEventListener("touchstart",startDraw,{passive:false});drawCanvas.addEventListener("touchmove",moveDraw,{passive:false});window.addEventListener("touchend",endDraw);document.getElementById("mapUpload").addEventListener("change",e=>{const file=e.target.files[0];if(!file)return;const img=new Image();img.onload=()=>{const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;bg.clearRect(0,0,w,h);bg.fillStyle="#fff";bg.fillRect(0,0,w,h);const scale=Math.min(w/img.width,h/img.height),iw=img.width*scale,ih=img.height*scale,x=(w-iw)/2,y=(h-ih)/2;bg.drawImage(img,x,y,iw,ih);clearDraw()};img.src=URL.createObjectURL(file)});window.addEventListener("resize",setupCanvas);buildMissionList();setupCanvas();loadMission(0);
+function makeSafeFilePath(groupName, missionId, studentNo){
+  const group=safeAscii(groupName); const no=safeAscii(studentNo); const rand=Math.random().toString(36).slice(2,8);
+  return `${group}/mission-${missionId}/${Date.now()}-${no}-${rand}.png`;
+}
+async function submitAnswer(){
+  if(!selectedGroup || !selectedStudent){alertMsg("กรุณาเลือกกลุ่มและชื่อนักเรียนก่อนส่งงาน",false);return}
+  const explanation=document.getElementById("explanation").value.trim();
+  if(!explanation){alertMsg("กรุณาเขียนคำอธิบายก่อนส่งคำตอบ",false);return}
+  try{
+    setLoading(true);
+    const temp=combinedCanvas();
+    const blob=await new Promise(resolve=>temp.toBlob(resolve,"image/png",0.95));
+    if(!blob) throw new Error("สร้างไฟล์ภาพไม่สำเร็จ");
+    const filePath=makeSafeFilePath(selectedGroup.group_name, missions[currentMission].id, selectedStudent.student_no);
+    const up=await sb.storage.from(CFG.STORAGE_BUCKET).upload(filePath, blob, {contentType:"image/png", upsert:false});
+    if(up.error) throw up.error;
+    const pub=sb.storage.from(CFG.STORAGE_BUCKET).getPublicUrl(filePath);
+    const image_url=pub.data.publicUrl;
+    const ins=await sb.from("submissions").insert({
+      student_id:selectedStudent.id,
+      group_id:selectedGroup.id,
+      student_name:selectedStudent.student_name,
+      student_no:selectedStudent.student_no,
+      student_code:selectedStudent.student_code,
+      group_name:selectedGroup.group_name,
+      mission_no:missions[currentMission].id,
+      explanation,
+      image_path:filePath,
+      image_url
+    }).select().single();
+    if(ins.error) throw ins.error;
+    if(unlocked<5 && missions[currentMission].id===unlocked) unlocked++;
+    alertMsg(`ส่งงานสำเร็จ ✅<br>บันทึกด่านที่ ${missions[currentMission].id} แล้ว และปลดล็อกด่านถัดไป`, true);
+    buildMissionList();
+    if(currentMission<missions.length-1) setTimeout(()=>loadMission(currentMission+1),800);
+  }catch(err){
+    console.error(err);
+    alertMsg("ส่งไม่สำเร็จ: " + (err.message || err), false);
+  }finally{setLoading(false)}
+}
+
+function drawText(text,x,y,size=24,color="#0f172a",align="center"){
+  bg.fillStyle=color; bg.font=`900 ${size}px system-ui`; bg.textAlign=align; bg.textBaseline="middle"; bg.fillText(text,x,y);
+}
+function roundRect(c,x,y,w,h,r,fill,stroke){
+  c.beginPath(); c.roundRect(x,y,w,h,r);
+  if(fill){c.fillStyle=fill;c.fill()} if(stroke){c.strokeStyle=stroke;c.lineWidth=2;c.stroke()}
+}
+function drawLevel1(){
+  const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight,grd=bg.createLinearGradient(0,0,w,h);
+  grd.addColorStop(0,"#fecaca"); grd.addColorStop(.48,"#e0f2fe"); grd.addColorStop(1,"#bfdbfe");
+  bg.fillStyle=grd; bg.fillRect(0,0,w,h);
+  roundRect(bg,w*.1,h*.17,w*.32,h*.56,26,"rgba(251,113,133,.16)","#fb7185");
+  roundRect(bg,w*.58,h*.17,w*.32,h*.56,26,"rgba(37,99,235,.16)","#2563eb");
+  drawText("บริเวณ A",w*.26,h*.22,20,"#7f1d1d"); drawText("อากาศร้อน",w*.26,h*.34,32,"#991b1b");
+  drawText("วาดเส้นตามความเข้าใจ",w*.26,h*.52,18,"#7f1d1d");
+  drawText("บริเวณ B",w*.74,h*.22,20,"#1e3a8a"); drawText("อากาศเย็น",w*.74,h*.34,32,"#1e3a8a");
+  drawText("วาดเส้นตามความเข้าใจ",w*.74,h*.52,18,"#1e40af");
+  bg.fillStyle="#78350f"; bg.fillRect(w*.08,h*.76,w*.84,14); drawText("พื้นผิวโลก",w*.5,h*.83,22,"#334155");
+}
+function drawLevel2(){
+  const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;
+  bg.fillStyle="#e0f2fe"; bg.fillRect(0,0,w,h);
+  bg.strokeStyle="#94a3b8"; bg.lineWidth=2;
+  for(let i=1;i<6;i++){bg.beginPath();bg.moveTo(0,h*i/6);bg.lineTo(w,h*i/6);bg.stroke();bg.beginPath();bg.moveTo(w*i/6,0);bg.lineTo(w*i/6,h);bg.stroke()}
+  bg.beginPath();bg.arc(w*.24,h*.5,72,0,Math.PI*2);bg.fillStyle="#bfdbfe";bg.fill();bg.strokeStyle="#2563eb";bg.lineWidth=5;bg.stroke();
+  drawText("H",w*.24,h*.48,64,"#1d4ed8");drawText("ความกดอากาศสูง",w*.24,h*.62,18,"#1e40af");
+  bg.beginPath();bg.arc(w*.76,h*.5,72,0,Math.PI*2);bg.fillStyle="#fecaca";bg.fill();bg.strokeStyle="#dc2626";bg.lineWidth=5;bg.stroke();
+  drawText("L",w*.76,h*.48,64,"#b91c1c");drawText("ความกดอากาศต่ำ",w*.76,h*.62,18,"#991b1b");
+  drawText("วิเคราะห์ทิศทางลมจากข้อมูลในภาพ",w*.5,h*.14,24,"#0f172a");
+}
+function drawThailandSimple(x,y,s){
+  bg.fillStyle="#bbf7d0";bg.strokeStyle="#166534";bg.lineWidth=3;bg.beginPath();
+  bg.moveTo(x+s*.42,y);bg.bezierCurveTo(x+s*.2,y+s*.1,x+s*.28,y+s*.32,x+s*.35,y+s*.42);
+  bg.bezierCurveTo(x+s*.48,y+s*.58,x+s*.28,y+s*.8,x+s*.5,y+s);
+  bg.bezierCurveTo(x+s*.66,y+s*.75,x+s*.6,y+s*.56,x+s*.72,y+s*.38);
+  bg.bezierCurveTo(x+s*.82,y+s*.2,x+s*.62,y+s*.06,x+s*.42,y);bg.fill();bg.stroke();
+}
+function drawLevel3(){
+  const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;
+  bg.fillStyle="#dff6ff";bg.fillRect(0,0,w,h);drawThailandSimple(w*.38,h*.13,h*.68);
+  drawText("H",w*.18,h*.28,62,"#1d4ed8");drawText("จีนตอนใต้",w*.18,h*.39,18,"#1e40af");
+  drawText("L",w*.76,h*.62,62,"#b91c1c");drawText("ทะเลจีนใต้",w*.76,h*.73,18,"#991b1b");
+  bg.strokeStyle="#64748b";bg.setLineDash([8,8]);bg.lineWidth=3;bg.beginPath();bg.moveTo(w*.05,h*.5);bg.quadraticCurveTo(w*.5,h*.3,w*.95,h*.55);bg.stroke();bg.setLineDash([]);
+  drawText("แผนที่จำลอง",w*.5,h*.08,28,"#0f172a");
+}
+function drawLevel4(){
+  const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;bg.fillStyle="#e0f2fe";bg.fillRect(0,0,w,h);drawThailandSimple(w*.39,h*.12,h*.7);
+  [{t:"H",x:.18,y:.2,c:"#1d4ed8",label:"มวลอากาศเย็น"},{t:"L",x:.75,y:.27,c:"#b91c1c",label:"หย่อมความกดต่ำ"},{t:"L",x:.28,y:.78,c:"#b91c1c",label:"ทะเลอันดามัน"},{t:"H",x:.84,y:.78,c:"#1d4ed8",label:"แปซิฟิก"}].forEach(o=>{
+    bg.beginPath();bg.arc(w*o.x,h*o.y,46,0,Math.PI*2);bg.fillStyle=o.t==="H"?"#bfdbfe":"#fecaca";bg.fill();bg.strokeStyle=o.c;bg.lineWidth=4;bg.stroke();
+    drawText(o.t,w*o.x,h*o.y,42,o.c);drawText(o.label,w*o.x,h*o.y+62,15,o.c);
+  });
+  bg.strokeStyle="#f59e0b";bg.lineWidth=4;bg.setLineDash([10,8]);bg.beginPath();bg.moveTo(w*.18,h*.58);bg.bezierCurveTo(w*.35,h*.45,w*.55,h*.48,w*.75,h*.58);bg.stroke();bg.setLineDash([]);
+  drawText("บริเวณที่ต้องวิเคราะห์เพิ่มเติม",w*.5,h*.66,18,"#92400e");
+}
+function drawLevel5(){
+  const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;
+  bg.fillStyle="#cbd5e1";bg.fillRect(0,0,w,h);
+  drawText("Final Mission",w/2,h*.28,34,"#0f172a");
+  drawText("อัปโหลดภาพแผนที่อากาศจริง",w/2,h*.4,22,"#0f172a");
+  drawText("แล้ววาดเส้นการเคลื่อนที่ของอากาศบนภาพ",w/2,h*.48,20,"#0f172a");
+  bg.strokeStyle="#475569";bg.lineWidth=3;bg.setLineDash([10,10]);bg.strokeRect(w*.12,h*.15,w*.76,h*.62);bg.setLineDash([]);
+}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+
+document.getElementById("groupSelect").onchange=e=>loadStudents(e.target.value);
+document.getElementById("studentSelect").onchange=e=>selectStudent(e.target.value);
+document.querySelectorAll(".color-btn").forEach(btn=>btn.onclick=()=>{document.querySelectorAll(".color-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");brushColor=btn.dataset.color});
+document.getElementById("brushSize").oninput=e=>{brushSize=Number(e.target.value);document.getElementById("sizeText").textContent=brushSize};
+document.getElementById("undoBtn").onclick=undo;document.getElementById("clearBtn").onclick=clearDraw;document.getElementById("downloadBtn").onclick=downloadPNG;document.getElementById("submitBtn").onclick=submitAnswer;
+drawCanvas.addEventListener("mousedown",startDraw);drawCanvas.addEventListener("mousemove",moveDraw);window.addEventListener("mouseup",endDraw);
+drawCanvas.addEventListener("touchstart",startDraw,{passive:false});drawCanvas.addEventListener("touchmove",moveDraw,{passive:false});window.addEventListener("touchend",endDraw);
+document.getElementById("mapUpload").addEventListener("change",e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const img=new Image();
+  img.onload=()=>{const w=bgCanvas.clientWidth,h=bgCanvas.clientHeight;bg.clearRect(0,0,w,h);bg.fillStyle="#fff";bg.fillRect(0,0,w,h);const scale=Math.min(w/img.width,h/img.height),iw=img.width*scale,ih=img.height*scale,x=(w-iw)/2,y=(h-ih)/2;bg.drawImage(img,x,y,iw,ih);clearDraw()};
+  img.src=URL.createObjectURL(file);
+});
+window.addEventListener("resize",setupCanvas);
+buildMissionList(); setupCanvas(); loadMission(0); initData();
 </script>
 </body>
 </html>
