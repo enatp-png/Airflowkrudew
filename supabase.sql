@@ -1,5 +1,6 @@
--- Air Flow Mission Group v4
--- รันใน Supabase SQL Editor
+-- Air Flow Mission Group v5
+-- ด่าน 3-4 ใช้ภาพโจทย์กลาง ทุกกลุ่มเห็นเหมือนกัน
+-- ด่าน 5 ใช้ภาพโจทย์แยกตามกลุ่ม
 
 create extension if not exists "pgcrypto";
 
@@ -30,12 +31,22 @@ create table public.prompt_maps (
   id uuid primary key default gen_random_uuid(),
   group_id uuid references public.student_groups(id) on delete cascade,
   mission_no int not null check (mission_no between 1 and 5),
+  prompt_scope text not null default 'group' check (prompt_scope in ('global','group')),
   title text,
   image_path text,
   image_url text,
-  created_at timestamptz not null default now(),
-  unique(group_id, mission_no)
+  created_at timestamptz not null default now()
 );
+
+-- ด่าน 3-4 เป็นโจทย์กลาง ไม่ซ้ำตาม mission
+create unique index if not exists prompt_maps_global_unique
+on public.prompt_maps (mission_no)
+where prompt_scope = 'global';
+
+-- ด่าน 5 เป็นโจทย์แยกกลุ่ม ไม่ซ้ำตามกลุ่ม+ด่าน
+create unique index if not exists prompt_maps_group_unique
+on public.prompt_maps (group_id, mission_no)
+where prompt_scope = 'group';
 
 create table public.submissions (
   id uuid primary key default gen_random_uuid(),
