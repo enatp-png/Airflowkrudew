@@ -1,288 +1,55 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Air Flow Mission | Admin</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap');
-    :root{--bg:#f7fbff;--ink:#172033;--muted:#667085;--card:#ffffff;--blue:#4ea8ff;--pink:#ff8fb3;--mint:#57d9a3;--yellow:#ffd166;--line:#e7edf5;--dark:#27364f;--shadow:0 18px 50px rgba(39,54,79,.12)}
-    *{box-sizing:border-box}
-    body{margin:0;color:var(--ink);font-family:"Noto Sans Thai",system-ui,sans-serif;background:radial-gradient(circle at 8% 0%,#dff3ff 0,transparent 36%),radial-gradient(circle at 92% 8%,#ffe0ec 0,transparent 30%),linear-gradient(180deg,#fbfdff,#eef7ff 70%,#f8fbff);min-height:100vh}
-    header{width:min(1240px,94vw);margin:0 auto;padding:22px 0 12px}
-    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(255,255,255,.78);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:26px;padding:12px 14px}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:#2563a9}.brand-icon{width:42px;height:42px;border-radius:16px;background:linear-gradient(135deg,#7dd3fc,#ff8fb3);display:grid;place-items:center;color:white;font-size:22px}
-    .student-link{text-decoration:none;border-radius:18px;padding:10px 14px;font-weight:800;background:linear-gradient(135deg,#57d9a3,#7dd3fc);color:#08365f}
-    .hero{margin-top:14px;padding:18px 20px;border-radius:30px;background:linear-gradient(135deg,#ffffff,#f0f9ff);border:1px solid var(--line);box-shadow:var(--shadow);text-align:center}
-    h1{margin:0;font-size:clamp(30px,5vw,54px);line-height:1.12}.hero p{margin:8px 0 0;color:var(--muted);font-weight:500}
-    .wrap{width:min(1240px,94vw);margin:16px auto 30px}
-    .card{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:28px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
-    .login{width:min(430px,94vw);margin:50px auto}.hidden{display:none!important}
-    input,select,textarea{width:100%;border:1px solid #dce7f3;background:#fbfdff;color:var(--ink);border-radius:18px;padding:12px 14px;font-size:15px;outline:none;font-family:inherit}
-    textarea{min-height:74px;resize:vertical;line-height:1.55}label{display:block;color:#334155;font-size:14px;font-weight:700;margin-bottom:7px}
-    button,.btn{border:0;border-radius:18px;padding:12px 13px;font-weight:800;cursor:pointer;font-family:inherit;font-size:14px;text-decoration:none;text-align:center}
-    .btn-blue{background:linear-gradient(135deg,#7dd3fc,#4ea8ff);color:#08365f}.btn-green{background:linear-gradient(135deg,#86efac,#57d9a3);color:#064e3b}.btn-red{background:linear-gradient(135deg,#ffb4c8,#ff6b91);color:#6b0f2a}.btn-yellow{background:linear-gradient(135deg,#ffe58a,#ffd166);color:#6b4b00}.btn-dark{background:#334155;color:white}
-    .grid{display:grid;gap:12px}.grid-2{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr 1fr 1fr}.grid-5{grid-template-columns:repeat(5,1fr)}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{background:#eef4fb;color:#334155}.tab.active{background:linear-gradient(135deg,#7dd3fc,#ffb4c8);color:#172033}
-    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{background:white;border:1px solid var(--line);border-radius:22px;padding:14px;text-align:center}.stat b{display:block;font-size:30px;color:#2563a9}.stat span{color:#667085;font-weight:600}
-    table{width:100%;border-collapse:collapse;background:white;border-radius:20px;overflow:hidden}th,td{border-bottom:1px solid #e9eef5;padding:10px;text-align:left;vertical-align:top;font-size:14px}th{background:#f2f8ff;color:#2563a9}img.thumb{width:140px;max-height:90px;object-fit:contain;background:white;border-radius:12px}.actions{display:flex;gap:6px;flex-wrap:wrap}.small{font-size:12px;color:var(--muted)}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef8ff;color:#2563a9;border:1px solid #cfeaff;font-size:12px;font-weight:800}
-    @media(max-width:950px){.grid-2,.grid-3,.grid-5,.stats{grid-template-columns:1fr}.wrap{width:94vw}table{display:block;overflow-x:auto}}
-  </style>
-</head>
-<body>
-<header>
-  <div class="topbar">
-    <div class="brand"><div class="brand-icon">👩‍🏫</div><div>Air Flow Mission Admin<br><span style="font-size:12px;color:#667085;font-weight:600">จัดการข้อมูลห้องเรียน</span></div></div>
-    <a class="student-link" href="index.html">💨 กลับหน้าทำกิจกรรม</a>
-  </div>
-  <div class="hero">
-    <h1>หน้าครู / เพิ่มนักเรียน</h1>
-    <p>จัดการกลุ่ม รายชื่อนักเรียน ดูผลงาน ให้คะแนน และส่งออก CSV</p>
-  </div>
-</header>
-
-<div id="loginBox" class="card login">
-  <h2>เข้าสู่ระบบครู</h2>
-  <p class="small">ใส่รหัสครูจาก config.js</p>
-  <input id="pin" type="password" placeholder="รหัสครู">
-  <br><br>
-  <button class="btn-blue" onclick="login()">เข้าสู่ระบบ</button>
-</div>
-
+<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Air Flow Admin</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap');
+:root{--ink:#172033;--muted:#667085;--line:#e7edf5;--blue:#4ea8ff;--pink:#ff8fb3;--mint:#57d9a3;--yellow:#ffd166;--dark:#27364f;--shadow:0 18px 50px rgba(39,54,79,.12)}
+*{box-sizing:border-box} body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Sans Thai",system-ui,sans-serif;background:radial-gradient(circle at 8% 0%,#dff3ff 0,transparent 36%),radial-gradient(circle at 92% 8%,#ffe0ec 0,transparent 30%),linear-gradient(180deg,#fbfdff,#eef7ff 70%,#f8fbff)}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.42;background-image:radial-gradient(#c6ddf4 1.2px,transparent 1.2px);background-size:24px 24px;mask-image:linear-gradient(black,transparent 82%)}
+header{width:min(1220px,94vw);margin:0 auto;padding:20px 0 12px;position:relative}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(255,255,255,.82);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:26px;padding:12px 14px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;color:#2563a9}.brand-icon{width:42px;height:42px;border-radius:16px;background:linear-gradient(135deg,#7dd3fc,#ff8fb3);display:grid;place-items:center;color:white;font-size:22px}.nav{display:flex;gap:8px;flex-wrap:wrap}
+.nav a{text-decoration:none;border-radius:18px;padding:10px 14px;font-weight:800;background:#eef7ff;color:#2563a9;border:1px solid #d7ecff}.nav a.dark{background:#334155;color:white;border:0}
+.hero{margin-top:14px;padding:18px 20px;border-radius:30px;background:linear-gradient(135deg,#ffffff,#f0f9ff);border:1px solid var(--line);box-shadow:var(--shadow);text-align:center}h1{margin:0;font-size:clamp(30px,5vw,52px);line-height:1.12}.hero p{margin:8px 0 0;color:var(--muted);font-weight:500}
+.wrap{width:min(1220px,94vw);margin:16px auto 30px;position:relative}.shell{display:grid;grid-template-columns:360px 1fr;gap:16px}.card{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:28px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+label{display:block;color:#334155;font-size:14px;font-weight:700;margin-bottom:7px}input,select,textarea{width:100%;border:1px solid #dce7f3;background:#fbfdff;color:var(--ink);border-radius:18px;padding:12px 14px;font-size:15px;outline:none;font-family:inherit}textarea{min-height:100px;resize:vertical;line-height:1.6}
+button,.btn{border:0;border-radius:18px;padding:12px 14px;font-weight:800;cursor:pointer;font-family:inherit;font-size:14px;text-decoration:none;text-align:center}.btn-blue{background:linear-gradient(135deg,#7dd3fc,#4ea8ff);color:#08365f}.btn-green{background:linear-gradient(135deg,#86efac,#57d9a3);color:#064e3b}.btn-red{background:linear-gradient(135deg,#ffb4c8,#ff6b91);color:#6b0f2a}.btn-yellow{background:linear-gradient(135deg,#ffe58a,#ffd166);color:#6b4b00}.btn-dark{background:#334155;color:white}
+.grid{display:grid;gap:12px}.grid-2{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr 1fr 1fr}.grid-4{grid-template-columns:repeat(4,1fr)}.grid-5{grid-template-columns:repeat(5,1fr)}.small{font-size:12px;color:var(--muted)}.pill{display:inline-block;padding:5px 10px;border-radius:999px;background:#eef8ff;color:#2563a9;border:1px solid #cfeaff;font-size:12px;font-weight:800}.hidden{display:none!important}
+table{width:100%;border-collapse:collapse;background:white;border-radius:20px;overflow:hidden}th,td{border-bottom:1px solid #e9eef5;padding:10px;text-align:left;vertical-align:top;font-size:14px}th{background:#f2f8ff;color:#2563a9}img.thumb{width:160px;max-height:110px;object-fit:contain;background:white;border-radius:14px;border:1px solid #e7edf5}.actions{display:flex;gap:6px;flex-wrap:wrap}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.gallery-card{background:white;border:1px solid var(--line);border-radius:24px;padding:12px;box-shadow:0 10px 24px rgba(39,54,79,.08)}.gallery-card img{width:100%;height:170px;object-fit:contain;background:#f8fbff;border-radius:18px;border:1px solid #e7edf5}.gallery-card h3{margin:8px 0 3px}.score{font-size:24px;font-weight:900;color:#16a34a}.modal{position:fixed;inset:0;background:rgba(15,23,42,.82);display:none;z-index:10;padding:24px}.modal.show{display:grid;place-items:center}.modal-box{width:min(1100px,96vw);max-height:92vh;overflow:auto;background:white;border-radius:28px;padding:18px}.modal-img{width:100%;max-height:70vh;object-fit:contain;background:#f8fbff;border-radius:20px}
+@media(max-width:950px){.shell,.grid-2,.grid-3,.grid-4,.grid-5{grid-template-columns:1fr}table{display:block;overflow-x:auto}}
+</style></head><body>
+<header><div class="topbar"><div class="brand"><div class="brand-icon">👩‍🏫</div><div>Air Flow Admin<br><span class="small">จัดการกลุ่ม ภาพโจทย์ และผลงาน</span></div></div><div class="nav"><a href="index.html">💨 หน้ากิจกรรม</a><a href="gallery.html">🖼️ แกลเลอรี</a></div></div><div class="hero"><h1>หน้าครู</h1><p>เพิ่มกลุ่ม เพิ่มสมาชิก แนบภาพโจทย์ และให้คะแนนผลงานเป็นกลุ่ม</p></div></header>
+<div id="loginBox" class="card" style="width:min(430px,94vw);margin:50px auto"><h2>เข้าสู่ระบบครู</h2><input id="pin" type="password" placeholder="รหัสครู"><br><br><button class="btn-blue" onclick="login()">เข้าสู่ระบบ</button></div>
 <main id="app" class="wrap hidden">
-  <section class="card">
-    <div class="tabs">
-      <button class="tab active" id="tabSub" onclick="showTab('submissions')">ผลงานนักเรียน</button>
-      <button class="tab" id="tabStu" onclick="showTab('students')">เพิ่มกลุ่ม / เพิ่มนักเรียน</button>
-    </div>
-  </section>
-
-  <section id="submissionsPage">
-    <section class="card">
-      <div class="grid grid-5">
-        <div><label>กลุ่ม</label><select id="filterGroup"><option value="">ทุกกลุ่ม</option></select></div>
-        <div><label>ด่าน</label><select id="filterMission"><option value="">ทุกด่าน</option><option value="1">ด่าน 1</option><option value="2">ด่าน 2</option><option value="3">ด่าน 3</option><option value="4">ด่าน 4</option><option value="5">ด่าน 5</option></select></div>
-        <div><label>ค้นหา</label><input id="searchBox" placeholder="ชื่อ / เลขที่"></div>
-        <div><label>&nbsp;</label><button class="btn-blue" onclick="loadSubmissions()">โหลดข้อมูล</button></div>
-        <div><label>&nbsp;</label><button class="btn-green" onclick="exportCSV()">ส่งออก CSV</button></div>
-      </div>
-    </section>
-    <section class="stats" id="stats"></section>
-    <section class="card"><div id="tableBox">กำลังโหลด...</div></section>
-  </section>
-
-  <section id="studentsPage" class="hidden">
-    <section class="card">
-      <h2>เพิ่มกลุ่ม / ห้องเรียน</h2>
-      <div class="grid grid-3">
-        <div><label>ชื่อกลุ่ม</label><input id="newGroupName" placeholder="เช่น ม.4/2 หรือ กลุ่ม 1"></div>
-        <div><label>ลำดับ</label><input id="newGroupOrder" type="number" value="0"></div>
-        <div><label>&nbsp;</label><button class="btn-blue" onclick="addGroup()">เพิ่มกลุ่ม</button></div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>เพิ่มนักเรียน</h2>
-      <div class="grid grid-5">
-        <div><label>เลือกกลุ่ม</label><select id="studentGroupSelect"></select></div>
-        <div><label>เลขที่</label><input id="studentNo" placeholder="เช่น 12"></div>
-        <div><label>รหัสนักเรียน</label><input id="studentCode" placeholder="ไม่บังคับ"></div>
-        <div><label>ชื่อ-สกุล</label><input id="studentName" placeholder="ชื่อ-สกุล"></div>
-        <div><label>&nbsp;</label><button class="btn-green" onclick="addStudent()">เพิ่มนักเรียน</button></div>
-      </div>
-      <hr style="border-color:#e9eef5;margin:16px 0">
-      <h3>นำเข้ารายชื่อหลายคน</h3>
-      <p class="small">วางข้อมูลแบบ: เลขที่,ชื่อ-สกุล,รหัสนักเรียน เช่น 1,เด็กชายตัวอย่าง ดีมาก,12345</p>
-      <div class="grid grid-2">
-        <textarea id="bulkText" placeholder="1,เด็กชายตัวอย่าง ดีมาก,12345&#10;2,เด็กหญิงตัวอย่าง เรียนดี,12346"></textarea>
-        <div>
-          <label>นำเข้าเข้ากลุ่ม</label>
-          <select id="bulkGroupSelect"></select>
-          <br><br>
-          <button class="btn-yellow" onclick="bulkImport()">นำเข้ารายชื่อ</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>รายชื่อนักเรียน</h2>
-      <div class="grid grid-3">
-        <div><label>กรองกลุ่ม</label><select id="manageGroupFilter" onchange="loadStudentsTable()"><option value="">ทุกกลุ่ม</option></select></div>
-        <div><label>ค้นหา</label><input id="studentSearch" placeholder="ชื่อ / เลขที่" oninput="renderStudentsTable()"></div>
-        <div><label>&nbsp;</label><button class="btn-blue" onclick="loadStudentsTable()">โหลดรายชื่อ</button></div>
-      </div>
-      <br>
-      <div id="studentsTable">กำลังโหลด...</div>
-    </section>
-  </section>
+<section class="card"><div class="nav"><button class="btn-blue" onclick="show('groups')">เพิ่มกลุ่ม/สมาชิก</button><button class="btn-yellow" onclick="show('prompts')">แนบภาพโจทย์</button><button class="btn-green" onclick="show('works')">ผลงานแบบแกลเลอรี</button></div></section>
+<section id="groupsPage"><div class="card"><h2>เพิ่มกลุ่ม</h2><div class="grid grid-3"><div><label>ชื่อกลุ่ม</label><input id="newGroupName" placeholder="เช่น กลุ่ม 1"></div><div><label>ลำดับ</label><input id="newGroupOrder" type="number" value="0"></div><div><label>&nbsp;</label><button class="btn-blue" onclick="addGroup()">เพิ่มกลุ่ม</button></div></div></div>
+<div class="card"><h2>เพิ่มสมาชิก</h2><div class="grid grid-5"><div><label>กลุ่ม</label><select id="studentGroupSelect"></select></div><div><label>เลขที่</label><input id="studentNo"></div><div><label>รหัส</label><input id="studentCode"></div><div><label>ชื่อ</label><input id="studentName"></div><div><label>&nbsp;</label><button class="btn-green" onclick="addStudent()">เพิ่ม</button></div></div><hr><h3>นำเข้าหลายคน</h3><p class="small">รูปแบบ: เลขที่,ชื่อ,รหัส</p><div class="grid grid-2"><textarea id="bulkText"></textarea><div><label>กลุ่ม</label><select id="bulkGroupSelect"></select><br><br><button class="btn-yellow" onclick="bulkImport()">นำเข้า</button></div></div></div>
+<div class="card"><h2>รายชื่อสมาชิก</h2><div class="grid grid-3"><select id="manageGroupFilter" onchange="loadStudentsTable()"></select><input id="studentSearch" oninput="renderStudentsTable()" placeholder="ค้นหา"><button class="btn-blue" onclick="loadStudentsTable()">โหลด</button></div><br><div id="studentsTable"></div></div></section>
+<section id="promptsPage" class="hidden"><div class="card"><h2>แนบภาพโจทย์ด่านที่ 5 ให้แต่ละกลุ่ม</h2><p class="small">เลือกกลุ่มแล้วอัปโหลดภาพ ด่าน 5 ของกลุ่มนั้นจะแสดงภาพนี้ให้นักเรียนวาดทับ</p><div class="grid grid-4"><div><label>กลุ่ม</label><select id="promptGroupSelect"></select></div><div><label>ด่าน</label><select id="promptMission"><option value="5">ด่าน 5</option></select></div><div><label>ชื่อภาพโจทย์</label><input id="promptTitle" placeholder="เช่น แผนที่อากาศชุด A"></div><div><label>ไฟล์ภาพ</label><input id="promptFile" type="file" accept="image/*"></div></div><br><button class="btn-green" onclick="uploadPrompt()">บันทึกภาพโจทย์</button></div><div class="card"><h2>ภาพโจทย์ที่แนบแล้ว</h2><div id="promptGallery" class="gallery"></div></div></section>
+<section id="worksPage" class="hidden"><div class="card"><h2>ผลงานนักเรียนแบบแยกกลุ่ม</h2><div class="grid grid-3"><select id="workGroupFilter"><option value="">ทุกกลุ่ม</option></select><select id="workMissionFilter"><option value="">ทุกด่าน</option><option value="1">ด่าน 1</option><option value="2">ด่าน 2</option><option value="3">ด่าน 3</option><option value="4">ด่าน 4</option><option value="5">ด่าน 5</option></select><button class="btn-blue" onclick="loadWorks()">โหลดผลงาน</button></div></div><div id="worksByGroup"></div></section>
 </main>
-
+<div id="modal" class="modal" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()"><button class="btn-red" onclick="closeModal()">ปิด</button><div id="modalContent"></div></div></div>
 <script>
-const CFG=window.APP_CONFIG;
-const sb=supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY);
-let groups=[], rows=[], studentRows=[];
-
-function login(){
-  const pin=document.getElementById("pin").value;
-  if(pin===CFG.TEACHER_PIN){
-    localStorage.setItem("airflow-admin-ok","1");
-    document.getElementById("loginBox").classList.add("hidden");
-    document.getElementById("app").classList.remove("hidden");
-    initAdmin();
-  }else alert("รหัสไม่ถูกต้อง");
-}
-if(localStorage.getItem("airflow-admin-ok")==="1"){
-  document.getElementById("loginBox").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  initAdmin();
-}
-async function initAdmin(){await loadGroups(); await loadSubmissions(); await loadStudentsTable();}
-function showTab(name){
-  document.getElementById("submissionsPage").classList.toggle("hidden",name!=="submissions");
-  document.getElementById("studentsPage").classList.toggle("hidden",name!=="students");
-  document.getElementById("tabSub").classList.toggle("active",name==="submissions");
-  document.getElementById("tabStu").classList.toggle("active",name==="students");
-}
-async function loadGroups(){
-  const {data,error}=await sb.from("student_groups").select("*").order("sort_order",{ascending:true}).order("group_name",{ascending:true});
-  if(error){alert("โหลดกลุ่มไม่สำเร็จ: "+error.message);return}
-  groups=data||[];
-  const opts='<option value="">ทุกกลุ่ม</option>'+groups.map(g=>`<option value="${g.id}">${esc(g.group_name)}</option>`).join("");
-  const opts2='<option value="">เลือกกลุ่ม</option>'+groups.map(g=>`<option value="${g.id}">${esc(g.group_name)}</option>`).join("");
-  document.getElementById("filterGroup").innerHTML=opts;
-  document.getElementById("manageGroupFilter").innerHTML=opts;
-  document.getElementById("studentGroupSelect").innerHTML=opts2;
-  document.getElementById("bulkGroupSelect").innerHTML=opts2;
-}
-async function addGroup(){
-  const group_name=document.getElementById("newGroupName").value.trim();
-  const sort_order=Number(document.getElementById("newGroupOrder").value||0);
-  if(!group_name){alert("กรุณากรอกชื่อกลุ่ม");return}
-  const {error}=await sb.from("student_groups").insert({group_name,sort_order});
-  if(error) alert("เพิ่มกลุ่มไม่สำเร็จ: "+error.message);
-  else{document.getElementById("newGroupName").value=""; await loadGroups();}
-}
-async function addStudent(){
-  const group_id=document.getElementById("studentGroupSelect").value;
-  const student_no=document.getElementById("studentNo").value.trim();
-  const student_code=document.getElementById("studentCode").value.trim();
-  const student_name=document.getElementById("studentName").value.trim();
-  if(!group_id||!student_name){alert("กรุณาเลือกกลุ่มและกรอกชื่อ");return}
-  const sort_order=Number(student_no||0);
-  const {error}=await sb.from("students").insert({group_id,student_no,student_code,student_name,sort_order});
-  if(error) alert("เพิ่มนักเรียนไม่สำเร็จ: "+error.message);
-  else{
-    document.getElementById("studentNo").value="";
-    document.getElementById("studentCode").value="";
-    document.getElementById("studentName").value="";
-    await loadStudentsTable();
-  }
-}
-async function bulkImport(){
-  const group_id=document.getElementById("bulkGroupSelect").value;
-  const text=document.getElementById("bulkText").value.trim();
-  if(!group_id||!text){alert("กรุณาเลือกกลุ่มและวางรายชื่อ");return}
-  const items=text.split(/\n+/).map((line,idx)=>{
-    const parts=line.split(",").map(x=>x.trim());
-    return {group_id,student_no:parts[0]||"",student_name:parts[1]||"",student_code:parts[2]||"",sort_order:Number(parts[0]||idx+1),is_active:true}
-  }).filter(x=>x.student_name);
-  if(!items.length){alert("ไม่พบรายชื่อ");return}
-  const {error}=await sb.from("students").insert(items);
-  if(error) alert("นำเข้าไม่สำเร็จ: "+error.message);
-  else{document.getElementById("bulkText").value=""; await loadStudentsTable(); alert("นำเข้าสำเร็จ")}
-}
-async function loadStudentsTable(){
-  let q=sb.from("students").select("*, student_groups(group_name)").order("sort_order",{ascending:true}).order("student_no",{ascending:true});
-  const gid=document.getElementById("manageGroupFilter").value;
-  if(gid) q=q.eq("group_id",gid);
-  const {data,error}=await q;
-  if(error){document.getElementById("studentsTable").innerHTML="โหลดไม่สำเร็จ: "+error.message;return}
-  studentRows=data||[]; renderStudentsTable();
-}
-function renderStudentsTable(){
-  const s=document.getElementById("studentSearch").value.trim().toLowerCase();
-  const data=studentRows.filter(r=>!s||(r.student_name||"").toLowerCase().includes(s)||String(r.student_no||"").includes(s));
-  if(!data.length){document.getElementById("studentsTable").innerHTML="ยังไม่มีรายชื่อ";return}
-  document.getElementById("studentsTable").innerHTML=`<table><thead><tr><th>กลุ่ม</th><th>เลขที่</th><th>ชื่อ</th><th>รหัส</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody>${data.map(r=>`<tr>
-    <td>${esc(r.student_groups?.group_name||"")}</td>
-    <td><input id="no-${r.id}" value="${escAttr(r.student_no||"")}"></td>
-    <td><input id="name-${r.id}" value="${escAttr(r.student_name||"")}"></td>
-    <td><input id="code-${r.id}" value="${escAttr(r.student_code||"")}"></td>
-    <td><span class="pill">${r.is_active?"ใช้งาน":"ปิด"}</span></td>
-    <td><div class="actions"><button class="btn-green" onclick="saveStudent('${r.id}')">บันทึก</button><button class="btn-yellow" onclick="toggleStudent('${r.id}',${!r.is_active})">${r.is_active?"ปิด":"เปิด"}</button><button class="btn-red" onclick="deleteStudent('${r.id}')">ลบ</button></div></td>
-  </tr>`).join("")}</tbody></table>`;
-}
-async function saveStudent(id){
-  const student_no=document.getElementById(`no-${id}`).value.trim();
-  const student_name=document.getElementById(`name-${id}`).value.trim();
-  const student_code=document.getElementById(`code-${id}`).value.trim();
-  const {error}=await sb.from("students").update({student_no,student_name,student_code,sort_order:Number(student_no||0)}).eq("id",id);
-  if(error) alert("บันทึกไม่สำเร็จ: "+error.message); else loadStudentsTable();
-}
-async function toggleStudent(id,status){
-  const {error}=await sb.from("students").update({is_active:status}).eq("id",id);
-  if(error) alert("แก้สถานะไม่สำเร็จ: "+error.message); else loadStudentsTable();
-}
-async function deleteStudent(id){
-  if(!confirm("ยืนยันลบนักเรียนคนนี้?")) return;
-  const {error}=await sb.from("students").delete().eq("id",id);
-  if(error) alert("ลบไม่สำเร็จ: "+error.message); else loadStudentsTable();
-}
-async function loadSubmissions(){
-  let q=sb.from("submissions").select("*").order("created_at",{ascending:false});
-  const gid=document.getElementById("filterGroup").value;
-  const m=document.getElementById("filterMission").value;
-  if(gid) q=q.eq("group_id",gid);
-  if(m) q=q.eq("mission_no",Number(m));
-  const {data,error}=await q;
-  if(error){document.getElementById("tableBox").innerHTML="โหลดไม่สำเร็จ: "+error.message;return}
-  const s=document.getElementById("searchBox").value.trim().toLowerCase();
-  rows=(data||[]).filter(r=>!s||(r.student_name||"").toLowerCase().includes(s)||String(r.student_no||"").includes(s));
-  renderStats(); renderTable();
-}
-function renderStats(){
-  const total=rows.length, done5=rows.filter(r=>r.mission_no===5).length, scored=rows.filter(r=>r.score!==null&&r.score!==undefined).length;
-  const avg=scored?(rows.reduce((a,r)=>a+(Number(r.score)||0),0)/scored).toFixed(2):"-";
-  const unique=new Set(rows.map(r=>`${r.group_name}-${r.student_no}-${r.student_name}`)).size;
-  document.getElementById("stats").innerHTML=[["ผลงานทั้งหมด",total],["นักเรียน",unique],["ส่งด่าน 5",done5],["ตรวจแล้ว",scored],["คะแนนเฉลี่ย",avg]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
-}
-function renderTable(){
-  if(!rows.length){document.getElementById("tableBox").innerHTML="ยังไม่มีข้อมูล";return}
-  document.getElementById("tableBox").innerHTML=`<table><thead><tr><th>เวลา</th><th>นักเรียน</th><th>ด่าน</th><th>คำอธิบาย</th><th>ภาพ</th><th>คะแนน/ความเห็น</th><th>จัดการ</th></tr></thead><tbody>${rows.map(r=>`<tr>
-    <td>${fmtDate(r.created_at)}</td>
-    <td><b>${esc(r.student_name)}</b><br><span class="small">${esc(r.group_name||"")} เลขที่ ${esc(r.student_no||"")}</span></td>
-    <td><span class="pill">ด่าน ${r.mission_no}</span></td>
-    <td>${esc(r.explanation||"")}</td>
-    <td>${r.image_url?`<a href="${r.image_url}" target="_blank"><img class="thumb" src="${r.image_url}"></a>`:"-"}</td>
-    <td><input id="score-${r.id}" type="number" step="0.5" min="0" max="10" value="${r.score??""}" placeholder="คะแนน"><textarea id="comment-${r.id}" placeholder="ความเห็นครู">${esc(r.teacher_comment||"")}</textarea></td>
-    <td><div class="actions"><button class="btn-green" onclick="saveScore('${r.id}')">บันทึกคะแนน</button><button class="btn-red" onclick="deleteSubmission('${r.id}','${escAttr(r.image_path||"")}')">ลบ</button></div></td>
-  </tr>`).join("")}</tbody></table>`;
-}
-async function saveScore(id){
-  const score=document.getElementById(`score-${id}`).value;
-  const teacher_comment=document.getElementById(`comment-${id}`).value;
-  const {error}=await sb.from("submissions").update({score:score===""?null:Number(score),teacher_comment}).eq("id",id);
-  if(error) alert("บันทึกไม่สำเร็จ: "+error.message); else{alert("บันทึกคะแนนแล้ว");loadSubmissions();}
-}
-async function deleteSubmission(id,path){
-  if(!confirm("ยืนยันลบผลงานนี้?"))return;
-  if(path) await sb.storage.from(CFG.STORAGE_BUCKET).remove([path]);
-  const {error}=await sb.from("submissions").delete().eq("id",id);
-  if(error) alert("ลบไม่สำเร็จ: "+error.message); else loadSubmissions();
-}
-function exportCSV(){
-  const headers=["เวลา","ชื่อ","กลุ่ม","เลขที่","ด่าน","คำอธิบาย","คะแนน","ความเห็นครู","ภาพ"];
-  const lines=[headers.join(",")];
-  rows.forEach(r=>lines.push([r.created_at,r.student_name,r.group_name,r.student_no,r.mission_no,r.explanation,r.score??"",r.teacher_comment??"",r.image_url??""].map(csv).join(",")));
-  const blob=new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="airflow-submissions.csv";a.click();
-}
-function csv(v){return `"${String(v??"").replaceAll('"','""')}"`}
-function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function escAttr(s){return String(s??"").replace(/'/g,"&#039;").replace(/"/g,"&quot;")}
-function fmtDate(d){return new Date(d).toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"})}
-</script>
-</body>
-</html>
+const CFG=window.APP_CONFIG;const sb=supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY);let groups=[],students=[],works=[],prompts=[];
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}function escAttr(s){return String(s??"").replace(/'/g,"&#039;").replace(/"/g,"&quot;")}
+function login(){if(document.getElementById("pin").value===CFG.TEACHER_PIN){localStorage.setItem("af-admin","1");document.getElementById("loginBox").classList.add("hidden");document.getElementById("app").classList.remove("hidden");init()}else alert("รหัสไม่ถูกต้อง")}
+if(localStorage.getItem("af-admin")==="1"){document.getElementById("loginBox").classList.add("hidden");document.getElementById("app").classList.remove("hidden");init()}
+function show(p){["groups","prompts","works"].forEach(x=>document.getElementById(x+"Page").classList.toggle("hidden",x!==p));if(p==="prompts")loadPrompts();if(p==="works")loadWorks()}
+async function init(){await loadGroups();await loadStudentsTable();await loadPrompts();await loadWorks()}
+async function loadGroups(){const r=await sb.from("student_groups").select("*").order("sort_order").order("group_name");if(r.error){alert(r.error.message);return}groups=r.data||[];const all='<option value="">ทุกกลุ่ม</option>'+groups.map(g=>`<option value="${g.id}">${esc(g.group_name)}</option>`).join("");const choose='<option value="">เลือกกลุ่ม</option>'+groups.map(g=>`<option value="${g.id}">${esc(g.group_name)}</option>`).join("");["studentGroupSelect","bulkGroupSelect","promptGroupSelect"].forEach(id=>document.getElementById(id).innerHTML=choose);["manageGroupFilter","workGroupFilter"].forEach(id=>document.getElementById(id).innerHTML=all)}
+async function addGroup(){const group_name=document.getElementById("newGroupName").value.trim(),sort_order=Number(document.getElementById("newGroupOrder").value||0);if(!group_name)return alert("กรอกชื่อกลุ่ม");const r=await sb.from("student_groups").insert({group_name,sort_order});if(r.error)alert(r.error.message);else{document.getElementById("newGroupName").value="";loadGroups()}}
+async function addStudent(){const group_id=document.getElementById("studentGroupSelect").value,student_no=document.getElementById("studentNo").value.trim(),student_code=document.getElementById("studentCode").value.trim(),student_name=document.getElementById("studentName").value.trim();if(!group_id||!student_name)return alert("เลือกกลุ่มและกรอกชื่อ");const r=await sb.from("students").insert({group_id,student_no,student_code,student_name,sort_order:Number(student_no||0)});if(r.error)alert(r.error.message);else{["studentNo","studentCode","studentName"].forEach(id=>document.getElementById(id).value="");loadStudentsTable()}}
+async function bulkImport(){const group_id=document.getElementById("bulkGroupSelect").value,text=document.getElementById("bulkText").value.trim();if(!group_id||!text)return alert("เลือกกลุ่มและวางรายชื่อ");const items=text.split(/\n+/).map((line,i)=>{const p=line.split(",").map(x=>x.trim());return {group_id,student_no:p[0]||"",student_name:p[1]||"",student_code:p[2]||"",sort_order:Number(p[0]||i+1)}}).filter(x=>x.student_name);const r=await sb.from("students").insert(items);if(r.error)alert(r.error.message);else{document.getElementById("bulkText").value="";loadStudentsTable();alert("นำเข้าสำเร็จ")}}
+async function loadStudentsTable(){let q=sb.from("students").select("*, student_groups(group_name)").order("sort_order").order("student_no");const gid=document.getElementById("manageGroupFilter").value;if(gid)q=q.eq("group_id",gid);const r=await q;students=r.data||[];renderStudentsTable()}
+function renderStudentsTable(){const s=document.getElementById("studentSearch").value?.toLowerCase()||"";const data=students.filter(r=>!s||(r.student_name||"").toLowerCase().includes(s)||String(r.student_no||"").includes(s));document.getElementById("studentsTable").innerHTML=data.length?`<table><thead><tr><th>กลุ่ม</th><th>เลขที่</th><th>ชื่อ</th><th>รหัส</th><th>จัดการ</th></tr></thead><tbody>${data.map(r=>`<tr><td>${esc(r.student_groups?.group_name||"")}</td><td><input id="no-${r.id}" value="${escAttr(r.student_no||"")}"></td><td><input id="name-${r.id}" value="${escAttr(r.student_name||"")}"></td><td><input id="code-${r.id}" value="${escAttr(r.student_code||"")}"></td><td><button class="btn-green" onclick="saveStudent('${r.id}')">บันทึก</button> <button class="btn-red" onclick="deleteStudent('${r.id}')">ลบ</button></td></tr>`).join("")}</tbody></table>`:"ยังไม่มีรายชื่อ"}
+async function saveStudent(id){const r=await sb.from("students").update({student_no:document.getElementById("no-"+id).value,student_name:document.getElementById("name-"+id).value,student_code:document.getElementById("code-"+id).value}).eq("id",id);if(r.error)alert(r.error.message);else loadStudentsTable()}
+async function deleteStudent(id){if(!confirm("ลบนักเรียน?"))return;const r=await sb.from("students").delete().eq("id",id);if(r.error)alert(r.error.message);else loadStudentsTable()}
+function safe(v){return String(v||"x").replace(/\//g,"-").replace(/[^a-zA-Z0-9_-]/g,"").slice(0,40)||"x"}
+async function uploadPrompt(){const group_id=document.getElementById("promptGroupSelect").value,mission_no=Number(document.getElementById("promptMission").value),title=document.getElementById("promptTitle").value.trim(),file=document.getElementById("promptFile").files[0];if(!group_id||!file)return alert("เลือกกลุ่มและไฟล์ภาพ");const g=groups.find(x=>x.id===group_id);const path=`prompts/${safe(g.group_name)}/mission-${mission_no}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"")}`;const up=await sb.storage.from(CFG.STORAGE_BUCKET).upload(path,file,{contentType:file.type,upsert:true});if(up.error)return alert(up.error.message);const url=sb.storage.from(CFG.STORAGE_BUCKET).getPublicUrl(path).data.publicUrl;const r=await sb.from("prompt_maps").upsert({group_id,mission_no,title,image_path:path,image_url:url},{onConflict:"group_id,mission_no"});if(r.error)alert(r.error.message);else{alert("บันทึกภาพโจทย์แล้ว");document.getElementById("promptFile").value="";loadPrompts()}}
+async function loadPrompts(){const r=await sb.from("prompt_maps").select("*, student_groups(group_name)").order("created_at",{ascending:false});prompts=r.data||[];document.getElementById("promptGallery").innerHTML=prompts.map(p=>`<div class="gallery-card"><img src="${p.image_url}"><h3>${esc(p.student_groups?.group_name||"")}</h3><p class="small">ด่าน ${p.mission_no} | ${esc(p.title||"ภาพโจทย์")}</p><button class="btn-red" onclick="deletePrompt('${p.id}','${escAttr(p.image_path)}')">ลบ</button></div>`).join("")||"ยังไม่มีภาพโจทย์"}
+async function deletePrompt(id,path){if(!confirm("ลบภาพโจทย์?"))return;if(path)await sb.storage.from(CFG.STORAGE_BUCKET).remove([path]);await sb.from("prompt_maps").delete().eq("id",id);loadPrompts()}
+async function loadWorks(){let q=sb.from("submissions").select("*").order("created_at",{ascending:false});const gid=document.getElementById("workGroupFilter").value,m=document.getElementById("workMissionFilter").value;if(gid)q=q.eq("group_id",gid);if(m)q=q.eq("mission_no",Number(m));const r=await q;works=r.data||[];renderWorks()}
+function renderWorks(){const box=document.getElementById("worksByGroup");if(!works.length){box.innerHTML='<div class="card">ยังไม่มีผลงาน</div>';return}const map={};works.forEach(w=>{(map[w.group_name] ||= []).push(w)});box.innerHTML=Object.entries(map).map(([g,items])=>`<section class="card"><h2>${esc(g)}</h2><div class="gallery">${items.map(w=>workCard(w)).join("")}</div></section>`).join("")}
+function workCard(w){return `<div class="gallery-card"><img src="${w.image_url}"><h3>ด่าน ${w.mission_no}</h3><p class="small">${new Date(w.created_at).toLocaleString("th-TH")}</p><p>${esc((w.explanation||"").slice(0,80))}</p><div class="score">${w.score??"-"} คะแนน</div><textarea id="comment-${w.id}" placeholder="ความเห็นครู">${esc(w.teacher_comment||"")}</textarea><br><input id="score-${w.id}" type="number" step="0.5" min="0" max="10" value="${w.score??""}" placeholder="คะแนน"><div class="actions"><button class="btn-green" onclick="saveScore('${w.id}')">ให้คะแนน</button><button class="btn-blue" onclick="openWork('${w.id}')">เปิดดู</button><button class="btn-red" onclick="deleteWork('${w.id}','${escAttr(w.image_path)}')">ลบ</button></div></div>`}
+async function saveScore(id){const score=document.getElementById("score-"+id).value,teacher_comment=document.getElementById("comment-"+id).value;const r=await sb.from("submissions").update({score:score===""?null:Number(score),teacher_comment}).eq("id",id);if(r.error)alert(r.error.message);else{alert("บันทึกคะแนนแล้ว");loadWorks()}}
+function openWork(id){const w=works.find(x=>x.id===id);document.getElementById("modalContent").innerHTML=`<h2>${esc(w.group_name)} | ด่าน ${w.mission_no}</h2><img class="modal-img" src="${w.image_url}"><h3>คำอธิบาย</h3><p>${esc(w.explanation||"")}</p><h3>สมาชิก</h3><pre>${esc(w.members||"")}</pre><h3>ผลประเมิน</h3><p class="score">${w.score??"-"} คะแนน</p><p>${esc(w.teacher_comment||"ยังไม่มีความเห็น")}</p>`;document.getElementById("modal").classList.add("show")}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
+async function deleteWork(id,path){if(!confirm("ลบผลงาน?"))return;if(path)await sb.storage.from(CFG.STORAGE_BUCKET).remove([path]);await sb.from("submissions").delete().eq("id",id);loadWorks()}
+</script></body></html>
