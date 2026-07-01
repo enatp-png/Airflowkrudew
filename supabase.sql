@@ -1,4 +1,4 @@
--- Air Flow Mission Modern
+-- Air Flow Mission Cute v3
 -- Run in Supabase SQL Editor
 
 create extension if not exists "pgcrypto";
