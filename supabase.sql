@@ -86,3 +86,11 @@ drop policy if exists "airflow_images_update" on storage.objects;
 create policy "airflow_images_update" on storage.objects for update to anon, authenticated using (bucket_id = 'airflow-images') with check (bucket_id = 'airflow-images');
 drop policy if exists "airflow_images_delete" on storage.objects;
 create policy "airflow_images_delete" on storage.objects for delete to anon, authenticated using (bucket_id = 'airflow-images');
+
+
+-- สำคัญ: ให้สิทธิ์ anon/authenticated ใช้งานตาราง ไม่เช่นนั้นจะขึ้น permission denied for table submissions
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO anon, authenticated;
