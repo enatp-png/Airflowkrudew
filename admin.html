@@ -43,7 +43,97 @@ function renderStudentsTable(){const s=document.getElementById("studentSearch").
 async function saveStudent(id){const r=await sb.from("students").update({student_no:document.getElementById("no-"+id).value,student_name:document.getElementById("name-"+id).value,student_code:document.getElementById("code-"+id).value}).eq("id",id);if(r.error)alert(r.error.message);else loadStudentsTable()}
 async function deleteStudent(id){if(!confirm("ลบนักเรียน?"))return;const r=await sb.from("students").delete().eq("id",id);if(r.error)alert(r.error.message);else loadStudentsTable()}
 function safe(v){return String(v||"x").replace(/\//g,"-").replace(/[^a-zA-Z0-9_-]/g,"").slice(0,40)||"x"}
-async function uploadPrompt(){const mission_no=Number(document.getElementById("promptMission").value),title=document.getElementById("promptTitle").value.trim(),file=document.getElementById("promptFile").files[0];let group_id=document.getElementById("promptGroupSelect").value;if(!file)return alert("เลือกไฟล์ภาพ");const isGlobal=mission_no===3||mission_no===4;if(!isGlobal&&!group_id)return alert("ด่าน 5 ต้องเลือกกลุ่ม");const label=isGlobal?`global-mission-${mission_no}`:safe(groups.find(x=>x.id===group_id)?.group_name||"group");const path=`prompts/${label}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"")}`;const up=await sb.storage.from(CFG.STORAGE_BUCKET).upload(path,file,{contentType:file.type,upsert:true});if(up.error)return alert(up.error.message);const url=sb.storage.from(CFG.STORAGE_BUCKET).getPublicUrl(path).data.publicUrl;let payload={mission_no,title,image_path:path,image_url:url,prompt_scope:isGlobal?"global":"group",group_id:isGlobal?null:group_id};let r;if(isGlobal)r=await sb.from("prompt_maps").upsert(payload,{onConflict:"mission_no"});else r=await sb.from("prompt_maps").upsert(payload,{onConflict:"group_id,mission_no"});if(r.error)alert(r.error.message);else{alert("บันทึกภาพโจทย์แล้ว");document.getElementById("promptFile").value="";loadPrompts()}}
+async function uploadPrompt() {
+  const mission_no = Number(document.getElementById("promptMission").value);
+  const title = document.getElementById("promptTitle").value.trim();
+  const file = document.getElementById("promptFile").files[0];
+  let group_id = document.getElementById("promptGroupSelect").value;
+
+  if (!file) return alert("เลือกไฟล์ภาพก่อน");
+
+  const isGlobal = mission_no === 3 || mission_no === 4;
+
+  if (!isGlobal && !group_id) {
+    return alert("ด่าน 5 ต้องเลือกกลุ่ม");
+  }
+
+  const label = isGlobal
+    ? `global-mission-${mission_no}`
+    : safe(groups.find(x => x.id === group_id)?.group_name || "group");
+
+  const path =
+    `prompts/${label}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
+
+  // 1) อัปโหลดไฟล์ใหม่
+  const up = await sb.storage
+    .from(CFG.STORAGE_BUCKET)
+    .upload(path, file, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (up.error) return alert(up.error.message);
+
+  const url = sb.storage
+    .from(CFG.STORAGE_BUCKET)
+    .getPublicUrl(path).data.publicUrl;
+
+  // 2) ดึงข้อมูลภาพเก่า
+  let oldQuery = sb.from("prompt_maps").select("*");
+
+  if (isGlobal) {
+    oldQuery = oldQuery
+      .eq("prompt_scope", "global")
+      .eq("mission_no", mission_no);
+  } else {
+    oldQuery = oldQuery
+      .eq("prompt_scope", "group")
+      .eq("group_id", group_id)
+      .eq("mission_no", mission_no);
+  }
+
+  const old = await oldQuery;
+
+  // 3) ลบไฟล์เก่าใน Storage ถ้ามี
+  if (old.data && old.data.length > 0) {
+    const oldPaths = old.data
+      .map(x => x.image_path)
+      .filter(Boolean);
+
+    if (oldPaths.length > 0) {
+      await sb.storage
+        .from(CFG.STORAGE_BUCKET)
+        .remove(oldPaths);
+    }
+
+    const oldIds = old.data.map(x => x.id);
+
+    await sb.from("prompt_maps")
+      .delete()
+      .in("id", oldIds);
+  }
+
+  // 4) insert ใหม่ ไม่ใช้ upsert แล้ว
+  const insertData = {
+    mission_no,
+    title,
+    image_path: path,
+    image_url: url,
+    prompt_scope: isGlobal ? "global" : "group",
+    group_id: isGlobal ? null : group_id
+  };
+
+  const ins = await sb.from("prompt_maps").insert(insertData);
+
+  if (ins.error) {
+    alert(ins.error.message);
+  } else {
+    alert("บันทึกภาพโจทย์แล้ว");
+    document.getElementById("promptFile").value = "";
+    document.getElementById("promptTitle").value = "";
+    loadPrompts();
+  }
+}
 async function loadPrompts(){const r=await sb.from("prompt_maps").select("*, student_groups(group_name)").order("created_at",{ascending:false});prompts=r.data||[];document.getElementById("promptGallery").innerHTML=prompts.map(p=>`<div class="gallery-card"><img src="${p.image_url}"><h3>${p.prompt_scope==="global"?"โจทย์กลางทุกกลุ่ม":esc(p.student_groups?.group_name||"")}</h3><p class="small">ด่าน ${p.mission_no} | ${esc(p.title||"ภาพโจทย์")}</p><button class="btn-red" onclick="deletePrompt('${p.id}','${escAttr(p.image_path)}')">ลบ</button></div>`).join("")||"ยังไม่มีภาพโจทย์"}
 async function deletePrompt(id,path){if(!confirm("ลบภาพโจทย์?"))return;if(path)await sb.storage.from(CFG.STORAGE_BUCKET).remove([path]);await sb.from("prompt_maps").delete().eq("id",id);loadPrompts()}
 async function loadWorks(){let q=sb.from("submissions").select("*").order("created_at",{ascending:false});const gid=document.getElementById("workGroupFilter").value,m=document.getElementById("workMissionFilter").value;if(gid)q=q.eq("group_id",gid);if(m)q=q.eq("mission_no",Number(m));const r=await q;works=r.data||[];renderWorks()}
